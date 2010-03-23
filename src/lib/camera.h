@@ -53,6 +53,7 @@ public:
   /** Access the camera vendor
     */
   const char* getVendor() const;
+
   /** Access the camera's video modes
     */
   const std::list<FireCAMVideoMode>& getVideoModes() const;
@@ -60,6 +61,10 @@ public:
     */
   const std::list<FireCAMFramerate>& getFramerates(const FireCAMVideoMode&
     videoMode) const;
+  /** Access the camera's features
+    */
+  const std::list<FireCAMFeature>& getFeatures() const;
+
   /** Access the camera's configuration
     */
   void setConfiguration(const FireCAMConfiguration& configuration);
@@ -74,6 +79,10 @@ public:
   bool connect();
   void disconnect();
 
+  /** Reset camera to factory defaults
+    */
+  void reset();
+
   /** Write camera information to the given stream
     */
   void write(std::ostream& stream) const;
@@ -83,12 +92,28 @@ protected:
 
   std::list<FireCAMVideoMode> videoModes;
   std::map<FireCAMVideoMode, std::list<FireCAMFramerate> > framerates;
+  std::list<FireCAMFeature> features;
 
   FireCAMConfiguration configuration;
 
   /** Construct a FireCAM camera object
     */
   FireCAMCamera(dc1394_t* context, uint64_t guid);
+
+  /** Read the supported video modes from the device
+    */
+  void readVideoModes();
+  /** Read the supported framerates from the device
+    */
+  void readFramerates();
+  /** Read the supported features from the device
+    */
+  void readFeatures();
+
+  /** Read or write the camera configuration from the device
+    */
+  void readConfiguration();
+  void writeConfiguration();
 };
 
 #endif

@@ -36,45 +36,30 @@ FireCAMVideoMode::FireCAMVideoMode(size_t width, size_t height, size_t depth,
   scalable(scalable) {
 }
 
+FireCAMVideoMode::FireCAMVideoMode(dc1394camera_t* device) {
+  dc1394error_t error = dc1394_video_get_mode(device, &mode);
+  if (error != DC1394_SUCCESS) {
+    std::ostringstream what;
+    what << "Failed to query video mode: " <<
+      dc1394_error_get_string(error);
+    throw std::runtime_error(what.str());
+  }
+  error = dc1394_get_color_coding_from_video_mode(device, mode, &coding);
+  if (error != DC1394_SUCCESS) {
+    std::ostringstream what;
+    what << "Failed to query color coding: " <<
+      dc1394_error_get_string(error);
+    throw std::runtime_error(what.str());
+  }
+
+  readParameters(device);
+}
+
 FireCAMVideoMode::FireCAMVideoMode(dc1394camera_t* device, dc1394video_mode_t
     mode, dc1394color_coding_t coding) :
   mode(mode),
   coding(coding) {
-  dc1394error_t error;
-
-  uint32_t width, height;
-  error = dc1394_get_image_size_from_video_mode(device, mode, &width,
-    &height);
-  if (error != DC1394_SUCCESS) {
-    std::ostringstream what;
-    what << "Failed to query image size: " <<
-      dc1394_error_get_string(error);
-    throw std::runtime_error(what.str());
-  }
-  this->width = width;
-  this->height = height;
-
-  uint32_t depth;
-  error = dc1394_get_color_coding_data_depth(coding, &depth);
-  if (error != DC1394_SUCCESS) {
-    std::ostringstream what;
-    what << "Failed to query color depth: " <<
-      dc1394_error_get_string(error);
-    throw std::runtime_error(what.str());
-  }
-  this->depth = depth;
-
-  dc1394bool_t color;
-  error = dc1394_is_color(coding, &color);
-  if (error != DC1394_SUCCESS) {
-    std::ostringstream what;
-    what << "Failed to query color information: " <<
-      dc1394_error_get_string(error);
-    throw std::runtime_error(what.str());
-  }
-  this->color = color;
-
-  this->scalable = dc1394_is_video_mode_scalable(mode);
+  readParameters(device);
 }
 
 FireCAMVideoMode::FireCAMVideoMode(const FireCAMVideoMode& src) :
@@ -177,4 +162,42 @@ void FireCAMVideoMode::write(std::ostream& stream) const {
   if (scalable)
     stream << ", scalable";
   stream << ")";
+}
+
+void FireCAMVideoMode::readParameters(dc1394camera_t* device) {
+  dc1394error_t error;
+
+  uint32_t width, height;
+  error = dc1394_get_image_size_from_video_mode(device, mode, &width,
+    &height);
+  if (error != DC1394_SUCCESS) {
+    std::ostringstream what;
+    what << "Failed to query image size: " <<
+      dc1394_error_get_string(error);
+    throw std::runtime_error(what.str());
+  }
+  this->width = width;
+  this->height = height;
+
+  uint32_t depth;
+  error = dc1394_get_color_coding_data_depth(coding, &depth);
+  if (error != DC1394_SUCCESS) {
+    std::ostringstream what;
+    what << "Failed to query color depth: " <<
+      dc1394_error_get_string(error);
+    throw std::runtime_error(what.str());
+  }
+  this->depth = depth;
+
+  dc1394bool_t color;
+  error = dc1394_is_color(coding, &color);
+  if (error != DC1394_SUCCESS) {
+    std::ostringstream what;
+    what << "Failed to query color information: " <<
+      dc1394_error_get_string(error);
+    throw std::runtime_error(what.str());
+  }
+  this->color = color;
+
+  this->scalable = dc1394_is_video_mode_scalable(mode);
 }

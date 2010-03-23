@@ -87,8 +87,13 @@ protected:
 
   /** Construct a FireCAM video mode object
     */
+  FireCAMVideoMode(dc1394camera_t* device);
   FireCAMVideoMode(dc1394camera_t* device, dc1394video_mode_t mode,
     dc1394color_coding_t coding);
+
+  /** Read the video mode parameters from the device
+    */
+  void readParameters(dc1394camera_t* device);
 };
 
 #endif

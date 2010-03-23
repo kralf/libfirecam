@@ -39,9 +39,9 @@ FireCAMConfiguration::FireCAMConfiguration(const char* filename) :
 
 FireCAMConfiguration::FireCAMConfiguration(const FireCAMConfiguration& src) :
   videoMode(src.videoMode),
-  colorFilter(src.colorFilter),
   framerate(src.framerate),
   parameters(src.parameters),
+  colorFilter(src.colorFilter),
   imageDirectory(src.imageDirectory),
   imageBasename(src.imageBasename),
   imageExtension(src.imageExtension),
@@ -67,11 +67,6 @@ const FireCAMVideoMode& FireCAMConfiguration::getVideoMode() const {
   return videoMode;
 }
 
-void FireCAMConfiguration::setColorFilter(const FireCAMColorFilter&
-    colorFilter) {
-  this->colorFilter = colorFilter;
-}
-
 const FireCAMColorFilter& FireCAMConfiguration::getColorFilter() const {
   return colorFilter;
 }
@@ -92,6 +87,11 @@ const FireCAMParameters& FireCAMConfiguration::getParameters() const {
   return parameters;
 }
 
+void FireCAMConfiguration::setColorFilter(const FireCAMColorFilter&
+    colorFilter) {
+  this->colorFilter = colorFilter;
+}
+
 /*****************************************************************************/
 /* Methods                                                                   */
 /*****************************************************************************/
@@ -99,10 +99,10 @@ const FireCAMParameters& FireCAMConfiguration::getParameters() const {
 FireCAMConfiguration& FireCAMConfiguration::operator=(
     const FireCAMConfiguration& src) {
   videoMode = src.videoMode;
-  colorFilter = src.colorFilter;
   framerate = src.framerate;
   parameters = src.parameters;
 
+  colorFilter = src.colorFilter;
   imageDirectory = src.imageDirectory;
   imageBasename = src.imageBasename;
   imageExtension = src.imageExtension;
@@ -152,13 +152,10 @@ void FireCAMConfiguration::read(std::istream& stream) {
         videoMode.setColor(readValue<bool>(value));
       else if (key == "video_mode.resolution.scalable")
         videoMode.setScalable(readValue<bool>(value));
-      else if (key == "color_filter.enabled")
-        colorFilter.setEnabled(readValue<bool>(value));
-      else if (key == "color_filter.pattern")
-        colorFilter.setPattern(
-          (FireCAMColorFilter::Pattern)readValue<int>(value));
+
       else if (key == "frame_rate.fps")
         framerate.setFramesPerSecond(readValue<double>(value));
+
       else if (key == "parameters.hue_enabled")
         parameters.setHueEnabled(readValue<bool>(value));
       else if (key == "parameters.saturation_enabled")
@@ -197,6 +194,13 @@ void FireCAMConfiguration::read(std::istream& stream) {
         parameters.setTilt(readValue<size_t>(value));
       else if (key == "parameters.sharpness")
         parameters.setSharpness(readValue<size_t>(value));
+
+      else if (key == "color_filter.enabled")
+        colorFilter.setEnabled(readValue<bool>(value));
+      else if (key == "color_filter.pattern")
+        colorFilter.setPattern(
+          (FireCAMColorFilter::Pattern)readValue<int>(value));
+
       else if (!key.empty()) {
         std::ostringstream what;
         what << "Bad configuration key: " << key;
@@ -218,11 +222,6 @@ void FireCAMConfiguration::write(std::ostream& stream) const {
   stream << "video_mode.resolution.scalable: " <<
     videoMode.isScalable() << std::endl;
 
-  stream << "color_filter.enabled: " <<
-    colorFilter.isEnabled() << std::endl;
-  stream << "color_filter.pattern: " <<
-    colorFilter.getPattern() << std::endl;
-
   stream << "frame_rate.fps: " <<
     framerate.getFramesPerSecond() << std::endl;
 
@@ -232,7 +231,6 @@ void FireCAMConfiguration::write(std::ostream& stream) const {
     parameters.isSaturationEnabled() << std::endl;
   stream << "parameters.gamma_enabled: " <<
     parameters.isGammaEnabled() << std::endl;
-
   stream << "parameters.auto_gain: " <<
     parameters.isAutoGain() << std::endl;
   stream << "parameters.auto_shutter: " <<
@@ -241,7 +239,6 @@ void FireCAMConfiguration::write(std::ostream& stream) const {
     parameters.isAutoWhiteBalance() << std::endl;
   stream << "parameters.auto_exposure: " <<
     parameters.isAutoExposure() << std::endl;
-
   stream << "parameters.gain: " <<
     parameters.getGain() << std::endl;
   stream << "parameters.shutter: " <<
@@ -250,7 +247,6 @@ void FireCAMConfiguration::write(std::ostream& stream) const {
     parameters.getWhiteBalanceBlue() << std::endl;
   stream << "parameters.white_balance_red: " <<
     parameters.getWhiteBalanceRed() << std::endl;
-
   stream << "parameters.brightness: " <<
     parameters.getBrightness() << std::endl;
   stream << "parameters.hue: " <<
@@ -259,7 +255,6 @@ void FireCAMConfiguration::write(std::ostream& stream) const {
     parameters.getSaturation() << std::endl;
   stream << "parameters.gamma: " <<
     parameters.getGamma() << std::endl;
-
   stream << "parameters.exposure: " <<
     parameters.getExposure() << std::endl;
   stream << "parameters.pan: " <<
@@ -268,4 +263,9 @@ void FireCAMConfiguration::write(std::ostream& stream) const {
     parameters.getTilt() << std::endl;
   stream << "parameters.sharpness: " <<
     parameters.getSharpness() << std::endl;
+
+  stream << "color_filter.enabled: " <<
+    colorFilter.isEnabled() << std::endl;
+  stream << "color_filter.pattern: " <<
+    colorFilter.getPattern() << std::endl;
 }

@@ -31,23 +31,26 @@ FireCAMFramerate::FireCAMFramerate(double framesPerSecond) :
   framesPerSecond(framesPerSecond) {
 }
 
-FireCAMFramerate::FireCAMFramerate(dc1394framerate_t rate) :
-    rate(rate) {
-  dc1394error_t error;
-
-  float framesPerSecond;
-  error = dc1394_framerate_as_float(rate, &framesPerSecond);
+FireCAMFramerate::FireCAMFramerate(dc1394camera_t* device) {
+  dc1394error_t error = dc1394_video_get_framerate(device, &rate);
   if (error != DC1394_SUCCESS) {
     std::ostringstream what;
     what << "Failed to query framerate: " <<
       dc1394_error_get_string(error);
     throw std::runtime_error(what.str());
   }
-  this->framesPerSecond = framesPerSecond;
+
+  readParameters();
+}
+
+FireCAMFramerate::FireCAMFramerate(dc1394framerate_t rate) :
+    rate(rate) {
+  readParameters();
 }
 
 FireCAMFramerate::FireCAMFramerate(const FireCAMFramerate& src) :
-    framesPerSecond(src.framesPerSecond) {
+  rate(src.rate),
+  framesPerSecond(src.framesPerSecond) {
 }
 
 FireCAMFramerate::~FireCAMFramerate() {
@@ -70,10 +73,27 @@ double FireCAMFramerate::getFramesPerSecond() const {
 /*****************************************************************************/
 
 FireCAMFramerate& FireCAMFramerate::operator=(const FireCAMFramerate& src) {
+  rate = src.rate;
+
   framesPerSecond = src.framesPerSecond;
+
   return *this;
 }
 
 void FireCAMFramerate::write(std::ostream& stream) const {
   stream << framesPerSecond << "fps";
+}
+
+void FireCAMFramerate::readParameters() {
+  dc1394error_t error;
+
+  float framesPerSecond;
+  error = dc1394_framerate_as_float(rate, &framesPerSecond);
+  if (error != DC1394_SUCCESS) {
+    std::ostringstream what;
+    what << "Failed to query framerate: " <<
+      dc1394_error_get_string(error);
+    throw std::runtime_error(what.str());
+  }
+  this->framesPerSecond = framesPerSecond;
 }

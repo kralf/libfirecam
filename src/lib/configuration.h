@@ -31,9 +31,11 @@
 #include "videomode.h"
 #include "colorfilter.h"
 #include "framerate.h"
+#include "feature.h"
 #include "parameters.h"
 
 class FireCAMConfiguration {
+friend class FireCAMCamera;
 public:
   /** Construct a FireCAM configuration object
     */
@@ -52,10 +54,6 @@ public:
     */
   void setVideoMode(const FireCAMVideoMode& videoMode);
   const FireCAMVideoMode& getVideoMode() const;
-  /** Access the color filter
-    */
-  void setColorFilter(const FireCAMColorFilter& colorFilter);
-  const FireCAMColorFilter& getColorFilter() const;
   /** Access the framerate
     */
   void setFramerate(const FireCAMFramerate& framerate);
@@ -64,6 +62,10 @@ public:
     */
   void setParameters(const FireCAMParameters& parameters);
   const FireCAMParameters& getParameters() const;
+  /** Access the color filter
+    */
+  void setColorFilter(const FireCAMColorFilter& colorFilter);
+  const FireCAMColorFilter& getColorFilter() const;
 
   /** Load the FireCAM configuration from the file with the specified
     * filename
@@ -78,10 +80,10 @@ public:
   void write(std::ostream& stream) const;
 protected:
   FireCAMVideoMode videoMode;
-  FireCAMColorFilter colorFilter;
   FireCAMFramerate framerate;
   FireCAMParameters parameters;
 
+  FireCAMColorFilter colorFilter;
   std::string imageDirectory;
   std::string imageBasename;
   std::string imageExtension;

@@ -18,52 +18,73 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef FIRECAM_FRAMERATE_H
-#define FIRECAM_FRAMERATE_H
+#ifndef FIRECAM_FEATURE_H
+#define FIRECAM_FEATURE_H
 
-/** \file framerate.h
-  * \brief FireCAM framerate definition
+/** \file feature.h
+  * \brief FireCAM feature definition
   */
+
+#include <vector>
 
 #include <dc1394/dc1394.h>
 
-class FireCAMFramerate {
+class FireCAMFeature {
 friend class FireCAMCamera;
 public:
-  /** Construct a FireCAM framerate object
+  /** Types and subclasses
     */
-  FireCAMFramerate(double framesPerSecond = 0.0);
-  FireCAMFramerate(const FireCAMFramerate& src);
+  enum Mode {
+    manual,
+    permanentAuto,
+    onePushAuto
+  };
 
-  /** Destroy a FireCAM framerate object
+  /** Construct a FireCAM feature object
     */
-  virtual ~FireCAMFramerate();
+  FireCAMFeature(size_t value = 0, bool enabled = true, Mode mode = manual);
+  FireCAMFeature(const std::vector<size_t>& values, bool enabled = true,
+    Mode mode = manual);
+  FireCAMFeature(const FireCAMFeature& src);
 
-  /** Access the number of frames per second
+  /** Destroy a FireCAM feature object
     */
-  void setFramesPerSecond(double framesPerSecond);
-  double getFramesPerSecond() const;
+  virtual ~FireCAMFeature();
 
-  /** FireCAM framerate assignments
+  /** Access the name of the feature
     */
-  FireCAMFramerate& operator=(const FireCAMFramerate& src);
+  const char* getName() const;
+  /** Access the values of the feature
+    */
+  void setValue(size_t value);
+  void setValues(const std::vector<size_t>& values);
+  const std::vector<size_t>& getValues() const;
+  /** Access the enabled flag of the feature
+    */
+  void setEnabled(bool enabled);
+  bool isEnabled() const;
+  /** Access the mode of the feature
+    */
+  void setMode(Mode mode);
+  Mode getMode() const;
 
-  /** Write framerate information to the given stream
+  /** FireCAM feature assignments
+    */
+  FireCAMFeature& operator=(const FireCAMFeature& src);
+
+  /** Write feature information to the given stream
     */
   void write(std::ostream& stream) const;
 protected:
-  dc1394framerate_t rate;
+  dc1394feature_t feature;
 
-  double framesPerSecond;
+  std::vector<size_t> values;
+  bool enabled;
+  Mode mode;
 
-  /** Construct a FireCAM framerate object
+  /** Construct a FireCAM feature object
     */
-  FireCAMFramerate(dc1394camera_t* device);
-  FireCAMFramerate(dc1394framerate_t rate);
-
-  /** Read the framerate parameters
-    */
-  void readParameters();
+  FireCAMFeature(dc1394camera_t* camera, dc1394feature_t feature);
 };
 
 #endif
