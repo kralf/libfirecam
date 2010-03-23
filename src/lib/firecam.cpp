@@ -22,6 +22,8 @@
 
 #include "firecam.h"
 
+#include "utils.h"
+
 /*****************************************************************************/
 /* Constructors and Destructor                                               */
 /*****************************************************************************/
@@ -56,9 +58,9 @@ const FireCAMCamera& FireCAM::getCamera(uint64_t guid) const {
   std::map<uint64_t, FireCAMCamera>::const_iterator it = cameras.find(guid);
 
   if (it == cameras.end()) {
-    std::ostringstream what;
-    what << "Bad camera GUID: " << std::hex << guid;
-    throw std::runtime_error(what.str());
+    std::ostringstream stream;
+    stream << std::hex << guid;
+    FireCAMUtils::error("Bad camera GUID", stream.str());
   }
   else
     return it->second;
@@ -72,12 +74,8 @@ size_t FireCAM::rescan() {
   cameras.clear();
 
   dc1394camera_list_t* list;
-  dc1394error_t error = dc1394_camera_enumerate(context, &list);
-  if (error != DC1394_SUCCESS) {
-    std::ostringstream what;
-    what << "Failed to query cameras: " << dc1394_error_get_string(error);
-    throw std::runtime_error(what.str());
-  }
+  FireCAMUtils::assert("Failed to query cameras",
+    dc1394_camera_enumerate(context, &list));
 
   for (int i = 0; i < list->num; ++i) {
     FireCAMCamera camera(context, list->ids[i].guid);

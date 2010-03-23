@@ -18,7 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <iostream>
+#include <sstream>
 
 #include "firecam.h"
 
@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
   const FireCAMConfiguration& configuration =
     FireCAM::getInstance().getCamera(guid).getConfiguration();
 
-  configuration.write(std::cout);
+  configuration.save(std::cout);
 
   return 0;
 }

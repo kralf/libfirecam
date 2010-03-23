@@ -25,6 +25,8 @@
   * \brief FireCAM video mode definition
   */
 
+#include <iostream>
+
 #include <dc1394/dc1394.h>
 
 class FireCAMVideoMode {
@@ -74,6 +76,13 @@ public:
   /** Write video mode information to the given stream
     */
   void write(std::ostream& stream) const;
+
+  /** Load video mode configuration from the given stream
+    */
+  void load(std::istream& stream);
+  /** Save video mode configuration to the given stream
+    */
+  void save(std::ostream& stream) const;
 protected:
   dc1394video_mode_t mode;
   dc1394color_coding_t coding;

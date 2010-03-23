@@ -18,10 +18,9 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <sstream>
-#include <stdexcept>
-
 #include "videomode.h"
+
+#include "utils.h"
 
 /*****************************************************************************/
 /* Constructors and Destructor                                               */
@@ -37,20 +36,10 @@ FireCAMVideoMode::FireCAMVideoMode(size_t width, size_t height, size_t depth,
 }
 
 FireCAMVideoMode::FireCAMVideoMode(dc1394camera_t* device) {
-  dc1394error_t error = dc1394_video_get_mode(device, &mode);
-  if (error != DC1394_SUCCESS) {
-    std::ostringstream what;
-    what << "Failed to query video mode: " <<
-      dc1394_error_get_string(error);
-    throw std::runtime_error(what.str());
-  }
-  error = dc1394_get_color_coding_from_video_mode(device, mode, &coding);
-  if (error != DC1394_SUCCESS) {
-    std::ostringstream what;
-    what << "Failed to query color coding: " <<
-      dc1394_error_get_string(error);
-    throw std::runtime_error(what.str());
-  }
+  FireCAMUtils::assert("Failed to query video mode",
+    dc1394_video_get_mode(device, &mode));
+  FireCAMUtils::assert("Failed to query color coding",
+    dc1394_get_color_coding_from_video_mode(device, mode, &coding));
 
   readParameters(device);
 }
@@ -164,39 +153,51 @@ void FireCAMVideoMode::write(std::ostream& stream) const {
   stream << ")";
 }
 
-void FireCAMVideoMode::readParameters(dc1394camera_t* device) {
-  dc1394error_t error;
+void FireCAMVideoMode::load(std::istream& stream) {
+  std::string module, value, option;
+  std::getline(stream, module, '.');
+  std::getline(stream, option, '=');
+  std::getline(stream, value);
 
-  uint32_t width, height;
-  error = dc1394_get_image_size_from_video_mode(device, mode, &width,
-    &height);
-  if (error != DC1394_SUCCESS) {
-    std::ostringstream what;
-    what << "Failed to query image size: " <<
-      dc1394_error_get_string(error);
-    throw std::runtime_error(what.str());
+  if (module == "video_mode") {
+    if (option == "width")
+      width = FireCAMUtils::convert<size_t>(value);
+    else if (option == "height")
+      height = FireCAMUtils::convert<size_t>(value);
+    else if (option == "depth")
+      depth = FireCAMUtils::convert<size_t>(value);
+    else if (option == "color")
+      color = FireCAMUtils::convert<bool>(value);
+    else if (option == "scalable")
+      scalable = FireCAMUtils::convert<bool>(value);
+    else
+      FireCAMUtils::error("Bad video mode option: ", option);
   }
+}
+
+void FireCAMVideoMode::save(std::ostream& stream) const {
+  stream << "video_mode.width = " << width << std::endl;
+  stream << "video_mode.height = " << height << std::endl;
+  stream << "video_mode.depth = " << depth << std::endl;
+  stream << "video_mode.color = " << color << std::endl;
+  stream << "video_mode.scalable = " << scalable << std::endl;
+}
+
+void FireCAMVideoMode::readParameters(dc1394camera_t* device) {
+  uint32_t width, height;
+  FireCAMUtils::assert("Failed to query image size",
+    dc1394_get_image_size_from_video_mode(device, mode, &width, &height));
   this->width = width;
   this->height = height;
 
   uint32_t depth;
-  error = dc1394_get_color_coding_data_depth(coding, &depth);
-  if (error != DC1394_SUCCESS) {
-    std::ostringstream what;
-    what << "Failed to query color depth: " <<
-      dc1394_error_get_string(error);
-    throw std::runtime_error(what.str());
-  }
+  FireCAMUtils::assert("Failed to query color depth",
+    dc1394_get_color_coding_data_depth(coding, &depth));
   this->depth = depth;
 
   dc1394bool_t color;
-  error = dc1394_is_color(coding, &color);
-  if (error != DC1394_SUCCESS) {
-    std::ostringstream what;
-    what << "Failed to query color information: " <<
-      dc1394_error_get_string(error);
-    throw std::runtime_error(what.str());
-  }
+  FireCAMUtils::assert("Failed to query color information",
+    dc1394_is_color(coding, &color));
   this->color = color;
 
   this->scalable = dc1394_is_video_mode_scalable(mode);

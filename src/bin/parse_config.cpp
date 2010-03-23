@@ -18,7 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <iostream>
+#include <sstream>
 
 #include "configuration.h"
 
@@ -30,7 +30,8 @@ int main(int argc, char **argv) {
 
   std::cout << "Parsing configuration file " << argv[1] << std::endl;
   FireCAMConfiguration configuration(argv[1]);
-  configuration.write(std::cout);
+
+  configuration.save(std::cout);
 
   return 0;
 }

@@ -18,59 +18,44 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef FIRECAM_FRAMERATE_H
-#define FIRECAM_FRAMERATE_H
+#ifndef FIRECAM_UTILS_H
+#define FIRECAM_UTILS_H
 
-/** \file framerate.h
-  * \brief FireCAM framerate definition
+/** \file utils.h
+  * \brief FireCAM utility functions
   */
+
+#include <sstream>
+#include <stdexcept>
 
 #include <dc1394/dc1394.h>
 
-class FireCAMFramerate {
-friend class FireCAMCamera;
+class FireCAMUtils {
 public:
-  /** Construct a FireCAM framerate object
+  /** Driver library error assertion
     */
-  FireCAMFramerate(double framesPerSecond = 0.0);
-  FireCAMFramerate(const FireCAMFramerate& src);
+  static void assert(const char* description, dc1394error_t error);
 
-  /** Destroy a FireCAM framerate object
+  /** Templated rrror handling using runtime exceptions
     */
-  virtual ~FireCAMFramerate();
+  template <typename T> static void error(const char* message,
+      const T& value) {
+    std::ostringstream what;
+    what << message << ": " << value;
+    throw std::runtime_error(what.str());
+  };
 
-  /** Access the number of frames per second
+  /** Templated string to value conversions
     */
-  void setFramesPerSecond(double framesPerSecond);
-  double getFramesPerSecond() const;
+  template <typename T> static T convert(const std::string& string) {
+    std::istringstream stream(string);
+    T value;
 
-  /** FireCAM framerate assignments
-    */
-  FireCAMFramerate& operator=(const FireCAMFramerate& src);
-
-  /** Write framerate information to the given stream
-    */
-  void write(std::ostream& stream) const;
-
-  /** Load framerate configuration from the given stream
-    */
-  void load(std::istream& stream);
-  /** Save framerate configuration to the given stream
-    */
-  void save(std::ostream& stream) const;
-protected:
-  dc1394framerate_t rate;
-
-  double framesPerSecond;
-
-  /** Construct a FireCAM framerate object
-    */
-  FireCAMFramerate(dc1394camera_t* device);
-  FireCAMFramerate(dc1394framerate_t rate);
-
-  /** Read the framerate parameters
-    */
-  void readParameters();
+    if (!(stream >> value))
+      error("Bad conversion", string);
+    else
+      return value;
+  };
 };
 
 #endif

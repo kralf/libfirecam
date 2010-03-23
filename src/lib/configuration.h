@@ -25,14 +25,10 @@
   * \brief FireCAM configuration class
   */
 
-#include <sstream>
-#include <stdexcept>
-
 #include "videomode.h"
 #include "colorfilter.h"
 #include "framerate.h"
 #include "feature.h"
-#include "parameters.h"
 
 class FireCAMConfiguration {
 friend class FireCAMCamera;
@@ -58,10 +54,11 @@ public:
     */
   void setFramerate(const FireCAMFramerate& framerate);
   const FireCAMFramerate& getFramerate() const;
-  /** Access the parameters
+  /** Access the features
     */
-  void setParameters(const FireCAMParameters& parameters);
-  const FireCAMParameters& getParameters() const;
+  void setFeature(const FireCAMFeature& feature);
+  const FireCAMFeature& getFeature(const char* name) const;
+
   /** Access the color filter
     */
   void setColorFilter(const FireCAMColorFilter& colorFilter);
@@ -72,16 +69,16 @@ public:
     */
   void load(const char* filename);
 
-  /** Read the FireCAM configuration from the given stream
+  /** Load the FireCAM configuration from the given stream
     */
-  void read(std::istream& stream);
-  /** Write the FireCAM configuration to the given stream
+  void load(std::istream& stream);
+  /** Save the FireCAM configuration to the given stream
     */
-  void write(std::ostream& stream) const;
+  void save(std::ostream& stream) const;
 protected:
   FireCAMVideoMode videoMode;
   FireCAMFramerate framerate;
-  FireCAMParameters parameters;
+  std::map<std::string, FireCAMFeature> features;
 
   FireCAMColorFilter colorFilter;
   std::string imageDirectory;
@@ -93,19 +90,6 @@ protected:
   size_t imageHeight;
   bool capture;
   bool transmit;
-
-  template <typename T> T readValue(const std::string& string) const {
-    std::istringstream stream(string);
-    T value;
-
-    if (!(stream >> value)) {
-      std::ostringstream what;
-      what << "Bad configuration value: " << string;
-      throw std::runtime_error(what.str());
-    }
-    else
-      return value;
-  };
 };
 
 #endif

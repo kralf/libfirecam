@@ -26,6 +26,8 @@
   */
 
 #include <vector>
+#include <list>
+#include <string>
 
 #include <dc1394/dc1394.h>
 
@@ -42,9 +44,10 @@ public:
 
   /** Construct a FireCAM feature object
     */
-  FireCAMFeature(size_t value = 0, bool enabled = true, Mode mode = manual);
-  FireCAMFeature(const std::vector<size_t>& values, bool enabled = true,
+  FireCAMFeature(const char* name = 0, size_t value = 0, bool enabled = true,
     Mode mode = manual);
+  FireCAMFeature(const char* name, const std::vector<size_t>& values, bool
+    enabled = true, Mode mode = manual);
   FireCAMFeature(const FireCAMFeature& src);
 
   /** Destroy a FireCAM feature object
@@ -53,7 +56,8 @@ public:
 
   /** Access the name of the feature
     */
-  const char* getName() const;
+  void setName(const char* name);
+  const std::string& getName() const;
   /** Access the values of the feature
     */
   void setValue(size_t value);
@@ -68,6 +72,16 @@ public:
   void setMode(Mode mode);
   Mode getMode() const;
 
+  /** Access the feature's readability flag
+    */
+  bool isReadable() const;
+  /** Access the feature's switchability flag
+    */
+  bool isSwitchable() const;
+  /** Access the supported modes of the feature
+    */
+  const std::list<Mode>& getModes() const;
+
   /** FireCAM feature assignments
     */
   FireCAMFeature& operator=(const FireCAMFeature& src);
@@ -75,16 +89,33 @@ public:
   /** Write feature information to the given stream
     */
   void write(std::ostream& stream) const;
+
+  /** Load feature configuration from the given stream
+    */
+  void load(std::istream& stream);
+  /** Save feature configuration to the given stream
+    */
+  void save(std::ostream& stream) const;
 protected:
   dc1394feature_t feature;
 
+  std::string name;
   std::vector<size_t> values;
   bool enabled;
   Mode mode;
 
+  bool readable;
+  bool switchable;
+  std::list<Mode> modes;
+
   /** Construct a FireCAM feature object
     */
-  FireCAMFeature(dc1394camera_t* camera, dc1394feature_t feature);
+  FireCAMFeature(dc1394camera_t* device, dc1394feature_info_t feature);
+  FireCAMFeature(dc1394camera_t* device, dc1394feature_t feature);
+
+  /** Read the feature parameters from the device
+    */
+  void readParameters(dc1394camera_t* device);
 };
 
 #endif

@@ -18,10 +18,11 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <sstream>
-#include <stdexcept>
+#include <iostream>
 
 #include "framerate.h"
+
+#include "utils.h"
 
 /*****************************************************************************/
 /* Constructors and Destructor                                               */
@@ -32,13 +33,8 @@ FireCAMFramerate::FireCAMFramerate(double framesPerSecond) :
 }
 
 FireCAMFramerate::FireCAMFramerate(dc1394camera_t* device) {
-  dc1394error_t error = dc1394_video_get_framerate(device, &rate);
-  if (error != DC1394_SUCCESS) {
-    std::ostringstream what;
-    what << "Failed to query framerate: " <<
-      dc1394_error_get_string(error);
-    throw std::runtime_error(what.str());
-  }
+  FireCAMUtils::assert("Failed to query framerate",
+    dc1394_video_get_framerate(device, &rate));
 
   readParameters();
 }
@@ -84,16 +80,28 @@ void FireCAMFramerate::write(std::ostream& stream) const {
   stream << framesPerSecond << "fps";
 }
 
-void FireCAMFramerate::readParameters() {
-  dc1394error_t error;
+void FireCAMFramerate::load(std::istream& stream) {
+  std::string module, value, option;
+  std::getline(stream, module, '.');
+  std::getline(stream, option, '=');
+  std::getline(stream, value);
 
-  float framesPerSecond;
-  error = dc1394_framerate_as_float(rate, &framesPerSecond);
-  if (error != DC1394_SUCCESS) {
-    std::ostringstream what;
-    what << "Failed to query framerate: " <<
-      dc1394_error_get_string(error);
-    throw std::runtime_error(what.str());
+  if (module == "frame_rate") {
+    if (option == "fps")
+      framesPerSecond = FireCAMUtils::convert<double>(value);
+    else
+      FireCAMUtils::error("Bad framerate option: ", option);
   }
+}
+
+void FireCAMFramerate::save(std::ostream& stream) const {
+  stream << "frame_rate.fps = " << framesPerSecond << std::endl;
+}
+
+void FireCAMFramerate::readParameters() {
+  float framesPerSecond;
+  FireCAMUtils::assert("Failed to query framerate",
+    dc1394_framerate_as_float(rate, &framesPerSecond));
+
   this->framesPerSecond = framesPerSecond;
 }
