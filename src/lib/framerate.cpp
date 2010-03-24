@@ -76,6 +76,18 @@ FireCAMFramerate& FireCAMFramerate::operator=(const FireCAMFramerate& src) {
   return *this;
 }
 
+bool FireCAMFramerate::operator==(const FireCAMFramerate& framerate) const {
+  return (framesPerSecond == framerate.framesPerSecond);
+}
+
+bool FireCAMFramerate::operator!=(const FireCAMFramerate& framerate) const {
+  return (framesPerSecond != framerate.framesPerSecond);
+}
+
+bool FireCAMFramerate::operator<(const FireCAMFramerate& framerate) const {
+  return (framesPerSecond < framerate.framesPerSecond);
+}
+
 void FireCAMFramerate::write(std::ostream& stream) const {
   stream << framesPerSecond << "fps";
 }

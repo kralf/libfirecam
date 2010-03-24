@@ -18,28 +18,38 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <iostream>
+#include <sstream>
 
-#include "camera.h"
+#include "firecam.h"
 
 int main(int argc, char **argv) {
   if (argc < 2) {
-    std::cerr << "Usage: " << argv[0] << "FILENAME" << std::endl;
+    std::cerr << "Usage: " << argv[0] << "GUID [FILENAME]" << std::endl;
     return -1;
   }
 
-  std::cout << "Parsing configuration file " << argv[1] << std::endl;
-  FireCAMConfiguration configuration(argv[1]);
+  std::istringstream stream(argv[1]);
+  uint64_t guid;
+  stream >> std::hex >> guid;
 
-//   std::cout << "Connecting camera... ";
-//   std::cout.flush();
-//   FireCAMCamera camera(configuration);
-//   if (camera.connect()) {
-//     std::cout << "success" << std::endl;
-//     camera.disconnect();
-//   }
-//   else
-//     std::cout << "failure" << std::endl;
+  FireCAMCamera& camera = FireCAM::getInstance().getCamera(guid);
+
+  if (argc == 3) {
+    std::cout << "Parsing configuration file " << argv[2] << std::endl;
+    FireCAMConfiguration configuration(argv[2]);
+    camera.setConfiguration(configuration);
+  }
+
+  std::cout << "Connecting camera... ";
+  std::cout.flush();
+  if (camera.connect()) {
+    std::cout << "success" << std::endl;
+    camera.disconnect();
+  }
+  else
+    std::cout << "failure" << std::endl;
+
+  camera.getConfiguration().save(std::cout);
 
   return 0;
 }

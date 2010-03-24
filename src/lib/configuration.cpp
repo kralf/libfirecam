@@ -19,11 +19,11 @@
  ***************************************************************************/
 
 #include <fstream>
-#include <sstream>
-#include <stdexcept>
 #include <algorithm>
 
 #include "configuration.h"
+
+#include "utils.h"
 
 /*****************************************************************************/
 /* Constructors and Destructor                                               */
@@ -90,11 +90,8 @@ const FireCAMFeature& FireCAMConfiguration::getFeature(const char* name)
   std::map<std::string, FireCAMFeature>::const_iterator it =
     features.find(name);
 
-  if (it == features.end()) {
-    std::ostringstream what;
-    what << "Bad feature: " << name;
-    throw std::runtime_error(what.str());
-  }
+  if (it == features.end())
+    FireCAMUtils::error("Bad device feature", name);
   else
     return it->second;
 }
@@ -131,11 +128,8 @@ FireCAMConfiguration& FireCAMConfiguration::operator=(
 void FireCAMConfiguration::load(const char* filename) {
   std::ifstream file(filename);
 
-  if (!file.is_open()) {
-    std::ostringstream what;
-    what << "Error opening file: " << filename;
-    throw std::runtime_error(what.str());
-  }
+  if (!file.is_open())
+    FireCAMUtils::error("Error opening configuration file", filename);
   else
     load(file);
 }
@@ -162,10 +156,8 @@ void FireCAMConfiguration::load(std::istream& stream) {
 
         features[name].load(lineStream.seekg(0));
       }
-      else if (module == "color_filter") {
-      }
-      else if (module == "parameters") {
-      }
+      else if (module == "color_filter")
+        colorFilter.load(lineStream.seekg(0));
       else if (!module.empty()) {
         std::ostringstream what;
         what << "Bad configuration module: " << module;
@@ -181,4 +173,5 @@ void FireCAMConfiguration::save(std::ostream& stream) const {
   for (std::map<std::string, FireCAMFeature>::const_iterator it =
       features.begin(); it != features.end(); ++it)
     it->second.save(stream);
+  colorFilter.save(stream);
 }

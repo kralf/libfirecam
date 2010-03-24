@@ -25,8 +25,20 @@
 #include "utils.h"
 
 /*****************************************************************************/
+/* Statics                                                                   */
+/*****************************************************************************/
+
+FireCAMFeature::ModeStrings FireCAMFeature::modeStrings;
+
+/*****************************************************************************/
 /* Constructors and Destructor                                               */
 /*****************************************************************************/
+
+FireCAMFeature::ModeStrings::ModeStrings() {
+  (*this)[manual] = "manual";
+  (*this)[permanentAuto] = "auto";
+  (*this)[onePushAuto] = "one_push_auto";
+}
 
 FireCAMFeature::FireCAMFeature(const char* name, size_t value, bool enabled,
     Mode mode) :
@@ -36,10 +48,6 @@ FireCAMFeature::FireCAMFeature(const char* name, size_t value, bool enabled,
   readable(true),
   switchable(true) {
   values.push_back(value);
-
-  modes.push_back(manual);
-  modes.push_back(permanentAuto);
-  modes.push_back(onePushAuto);
 }
 
 FireCAMFeature::FireCAMFeature(const char* name, const std::vector<size_t>&
@@ -50,9 +58,6 @@ FireCAMFeature::FireCAMFeature(const char* name, const std::vector<size_t>&
   mode(mode),
   readable(true),
   switchable(true) {
-  modes.push_back(manual);
-  modes.push_back(permanentAuto);
-  modes.push_back(onePushAuto);
 }
 
 FireCAMFeature::FireCAMFeature(dc1394camera_t* device, dc1394feature_info_t
@@ -167,31 +172,36 @@ FireCAMFeature& FireCAMFeature::operator=(const FireCAMFeature& src) {
   return *this;
 }
 
+bool FireCAMFeature::operator==(const FireCAMFeature& feature) const {
+  return (name == feature.name);
+}
+
+bool FireCAMFeature::operator!=(const FireCAMFeature& feature) const {
+  return (name != feature.name);
+}
+
+bool FireCAMFeature::operator<(const FireCAMFeature& feature) const {
+  return (name < feature.name);
+}
+
 void FireCAMFeature::write(std::ostream& stream) const {
   stream << name << ": ";
 
-  for (int i = 0; i < values.size(); ++i) {
-    if (i)
-      stream << ", ";
-    stream << values[i];
-  }
-  stream << " (";
-  if (enabled)
-    stream << "on";
-  else
-    stream << "off";
-  stream << ", ";
-  if (mode == permanentAuto)
-    stream << "auto";
-  else if (mode == onePushAuto)
-    stream << "one_push_auto";
-  else
-    stream << "manual";
   if (readable)
-    stream << ", readable";
-  if (switchable)
-    stream << ", switchable";
-  stream << ")";
+    stream << "readable";
+  if (switchable) {
+    if (readable)
+      stream << ", ";
+    stream << "switchable";
+  }
+  if ((readable || switchable) && !modes.empty())
+    stream << ", ";
+  for (std::list<Mode>::const_iterator it = modes.begin();
+      it != modes.end(); ++it) {
+    if (it != modes.begin())
+      stream << "/";
+    stream << modeStrings[*it];
+  }
 }
 
 void FireCAMFeature::load(std::istream& stream) {
@@ -210,19 +220,13 @@ void FireCAMFeature::load(std::istream& stream) {
       values.clear();
       std::istringstream valueStream(value);
 
-      while (!valueStream.eof()) {\
+      while (!valueStream.eof()) {
         std::getline(valueStream, value, ',');
         values.push_back(FireCAMUtils::convert<size_t>(value));
       }
     }
-    else if (option == "mode") {
-      if (value == "auto")
-        mode = permanentAuto;
-      else if (value == "one_push_auto")
-        mode = onePushAuto;
-      else
-        mode = manual;
-    }
+    else if (option == "mode")
+      mode = FireCAMUtils::convert(value, modeStrings);
     else
       FireCAMUtils::error("Bad feature option: ", option);
   }
@@ -242,16 +246,8 @@ void FireCAMFeature::save(std::ostream& stream) const {
     stream << std::endl;
   }
 
-  if (modes.size() > 1) {
-    stream << "features." << name << ".mode = ";
-    if (mode == permanentAuto)
-      stream << "auto";
-    else if (mode == onePushAuto)
-      stream << "one_push_auto";
-    else
-      stream << "manual";
-    stream << std::endl;
-  }
+  stream << "features." << name << ".mode = " << modeStrings[mode] <<
+    std::endl;
 }
 
 void FireCAMFeature::readParameters(dc1394camera_t* device) {
@@ -309,6 +305,8 @@ void FireCAMFeature::readParameters(dc1394camera_t* device) {
     this->mode = permanentAuto;
   else if (mode == DC1394_FEATURE_MODE_ONE_PUSH_AUTO)
     this->mode = onePushAuto;
+  else
+    this->mode = manual;
 
   modes.clear();
   dc1394feature_modes_t modes;

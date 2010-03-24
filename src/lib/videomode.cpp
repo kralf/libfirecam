@@ -137,8 +137,11 @@ bool FireCAMVideoMode::operator!=(const FireCAMVideoMode& videoMode) const {
 }
 
 bool FireCAMVideoMode::operator<(const FireCAMVideoMode& videoMode) const {
-  return (!(color >= videoMode.color) || !(scalable >= videoMode.scalable) ||
-    !(width*height*depth >= videoMode.width*videoMode.height*videoMode.depth));
+  return ((width < videoMode.width) || (width == videoMode.width) &&
+    (height < videoMode.height) || (height == videoMode.height) &&
+    (depth < videoMode.depth) || (depth == videoMode.depth) &&
+    (color < videoMode.color) || (color == videoMode.color) &&
+    (scalable < videoMode.scalable));
 }
 
 void FireCAMVideoMode::write(std::ostream& stream) const {
@@ -201,4 +204,16 @@ void FireCAMVideoMode::readParameters(dc1394camera_t* device) {
   this->color = color;
 
   this->scalable = dc1394_is_video_mode_scalable(mode);
+}
+
+void FireCAMVideoMode::writeParameters(dc1394camera_t* device) const {
+  FireCAMUtils::assert("Failed to set video mode",
+    dc1394_video_set_mode(device, mode));
+
+  if (scalable) {
+    FireCAMUtils::assert("Failed to set image size",
+      dc1394_format7_set_image_size(device, mode, width, height));
+    FireCAMUtils::assert("Failed to set color coding",
+      dc1394_format7_set_color_coding(device, mode, coding));
+  }
 }

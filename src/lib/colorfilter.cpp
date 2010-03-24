@@ -20,29 +20,33 @@
 
 #include "colorfilter.h"
 
+#include "utils.h"
+
 /*****************************************************************************/
 /* Statics                                                                   */
 /*****************************************************************************/
 
-const FireCAMColorFilter::Presets FireCAMColorFilter::presets;
+FireCAMColorFilter::PatternStrings FireCAMColorFilter::patternStrings;
 
 /*****************************************************************************/
 /* Constructors and Destructor                                               */
 /*****************************************************************************/
 
-FireCAMColorFilter::Presets::Presets() {
-  (*this)[rggb] = DC1394_COLOR_FILTER_RGGB;
-  (*this)[gbrg] = DC1394_COLOR_FILTER_GBRG;
-  (*this)[grbg] = DC1394_COLOR_FILTER_GRBG;
-  (*this)[bggr] = DC1394_COLOR_FILTER_BGGR;
+FireCAMColorFilter::PatternStrings::PatternStrings() {
+  (*this)[rggb] = "rggb";
+  (*this)[gbrg] = "gbrg";
+  (*this)[grbg] = "grbg";
+  (*this)[bggr] = "bggr";
 }
 
 FireCAMColorFilter::FireCAMColorFilter(bool enabled, Pattern pattern) :
-  enabled(enabled),
-  pattern(pattern) {
+  enabled(enabled) {
+  setPattern(pattern);
 }
 
 FireCAMColorFilter::FireCAMColorFilter(const FireCAMColorFilter& src) :
+  filter(src.filter),
+  enabled(src.enabled),
   pattern(src.pattern) {
 }
 
@@ -63,6 +67,15 @@ bool FireCAMColorFilter::isEnabled() const {
 
 void FireCAMColorFilter::setPattern(Pattern pattern) {
   this->pattern = pattern;
+
+  if (pattern == gbrg)
+    filter = DC1394_COLOR_FILTER_GBRG;
+  else if (pattern == grbg)
+    filter = DC1394_COLOR_FILTER_GRBG;
+  else if (pattern == bggr)
+    filter = DC1394_COLOR_FILTER_BGGR;
+  else
+    filter = DC1394_COLOR_FILTER_RGGB;
 }
 
 FireCAMColorFilter::Pattern FireCAMColorFilter::getPattern() const {
@@ -75,10 +88,35 @@ FireCAMColorFilter::Pattern FireCAMColorFilter::getPattern() const {
 
 FireCAMColorFilter& FireCAMColorFilter::operator=(
     const FireCAMColorFilter& src) {
+  filter = src.filter;
+
+  enabled = src.enabled;
   pattern = src.pattern;
+
   return *this;
 }
 
-FireCAMColorFilter::operator dc1394color_filter_t() const {
-  return presets.find(pattern)->second;
+void FireCAMColorFilter::write(std::ostream& stream) const {
+  stream << patternStrings[pattern];
+}
+
+void FireCAMColorFilter::load(std::istream& stream) {
+  std::string module, option, value;
+  std::getline(stream, module, '.');
+  std::getline(stream, option, '=');
+  std::getline(stream, value);
+
+  if (module == "color_filter") {
+    if (option == "enabled")
+      enabled = FireCAMUtils::convert<bool>(value);
+    else if (option == "pattern")
+      setPattern(FireCAMUtils::convert(value, patternStrings));
+    else
+      FireCAMUtils::error("Bad color filter option: ", option);
+  }
+}
+
+void FireCAMColorFilter::save(std::ostream& stream) const {
+  stream << "color_filter.enabled = " << enabled << std::endl;
+  stream << "color_filter.pattern = " << patternStrings[pattern] << std::endl;
 }

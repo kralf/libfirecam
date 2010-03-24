@@ -25,6 +25,7 @@
   * \brief FireCAM feature definition
   */
 
+#include <map>
 #include <vector>
 #include <list>
 #include <string>
@@ -40,6 +41,14 @@ public:
     manual,
     permanentAuto,
     onePushAuto
+  };
+
+  class ModeStrings :
+    public std::map<Mode, std::string> {
+  public:
+    /** Construct a feature mode string object
+      */
+    ModeStrings();
   };
 
   /** Construct a FireCAM feature object
@@ -86,6 +95,12 @@ public:
     */
   FireCAMFeature& operator=(const FireCAMFeature& src);
 
+  /** FireCAM feature comparisons
+    */
+  bool operator==(const FireCAMFeature& feature) const;
+  bool operator!=(const FireCAMFeature& feature) const;
+  bool operator<(const FireCAMFeature& feature) const;
+
   /** Write feature information to the given stream
     */
   void write(std::ostream& stream) const;
@@ -97,6 +112,8 @@ public:
     */
   void save(std::ostream& stream) const;
 protected:
+  static ModeStrings modeStrings;
+
   dc1394feature_t feature;
 
   std::string name;

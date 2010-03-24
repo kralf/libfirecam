@@ -54,8 +54,8 @@ const std::map<uint64_t, FireCAMCamera>& FireCAM::getCameras() const {
   return cameras;
 }
 
-const FireCAMCamera& FireCAM::getCamera(uint64_t guid) const {
-  std::map<uint64_t, FireCAMCamera>::const_iterator it = cameras.find(guid);
+FireCAMCamera& FireCAM::getCamera(uint64_t guid) {
+  std::map<uint64_t, FireCAMCamera>::iterator it = cameras.find(guid);
 
   if (it == cameras.end()) {
     std::ostringstream stream;

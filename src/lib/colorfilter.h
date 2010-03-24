@@ -26,6 +26,7 @@
   */
 
 #include <map>
+#include <string>
 
 #include <dc1394/dc1394.h>
 
@@ -40,17 +41,13 @@ public:
     bggr
   };
 
-  class Presets :
-    public std::map<Pattern, dc1394color_filter_t> {
+  class PatternStrings :
+    public std::map<Pattern, std::string> {
   public:
-    /** Construct a color filter presets object
+    /** Construct a color filter pattern string object
       */
-    Presets();
+    PatternStrings();
   };
-
-  /** FireCAM color filter presets
-    */
-  static const Presets presets;
 
   /** Construct a FireCAM color filter object
     */
@@ -74,10 +71,21 @@ public:
     */
   FireCAMColorFilter& operator=(const FireCAMColorFilter& src);
 
-  /** FireCAM color filter conversions
+  /** Write color filter information to the given stream
     */
-  operator dc1394color_filter_t() const;
+  void write(std::ostream& stream) const;
+
+  /** Load color filter configuration from the given stream
+    */
+  void load(std::istream& stream);
+  /** Save color filter configuration to the given stream
+    */
+  void save(std::ostream& stream) const;
 protected:
+  static PatternStrings patternStrings;
+
+  dc1394color_filter_t filter;
+
   bool enabled;
   Pattern pattern;
 };

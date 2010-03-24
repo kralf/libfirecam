@@ -48,6 +48,12 @@ public:
     */
   FireCAMFramerate& operator=(const FireCAMFramerate& src);
 
+  /** FireCAM framerate comparisons
+    */
+  bool operator==(const FireCAMFramerate& framerate) const;
+  bool operator!=(const FireCAMFramerate& framerate) const;
+  bool operator<(const FireCAMFramerate& framerate) const;
+
   /** Write framerate information to the given stream
     */
   void write(std::ostream& stream) const;

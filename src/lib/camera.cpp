@@ -68,13 +68,13 @@ const char* FireCAMCamera::getVendor() const {
   return device->vendor;
 }
 
-const std::list<FireCAMVideoMode>& FireCAMCamera::getVideoModes() const {
+const std::set<FireCAMVideoMode>& FireCAMCamera::getVideoModes() const {
   return videoModes;
 }
 
-const std::list<FireCAMFramerate>& FireCAMCamera::getFramerates(const
+const std::set<FireCAMFramerate>& FireCAMCamera::getFramerates(const
     FireCAMVideoMode& videoMode) const {
-  std::map<FireCAMVideoMode, std::list<FireCAMFramerate> >::const_iterator
+  std::map<FireCAMVideoMode, std::set<FireCAMFramerate> >::const_iterator
     it = framerates.find(videoMode);
 
   if (it == framerates.end()) {
@@ -92,7 +92,7 @@ void FireCAMCamera::setConfiguration(const FireCAMConfiguration&
   this->configuration = configuration;
 }
 
-const std::list<FireCAMFeature>& FireCAMCamera::getFeatures() const {
+const std::set<FireCAMFeature>& FireCAMCamera::getFeatures() const {
   return features;
 }
 
@@ -121,6 +121,7 @@ FireCAMCamera& FireCAMCamera::operator=(const FireCAMCamera& src) {
 }
 
 bool FireCAMCamera::connect() {
+  writeConfiguration();
   return false;
 }
 
@@ -151,7 +152,7 @@ void FireCAMCamera::readVideoModes() {
       FireCAMUtils::assert("Failed to query color codings",
         dc1394_format7_get_color_codings(device, modes.modes[i], &codings));
       for (int j = 0; j < codings.num; ++j)
-        videoModes.push_back(FireCAMVideoMode(device, modes.modes[i],
+        videoModes.insert(FireCAMVideoMode(device, modes.modes[i],
           codings.codings[j]));
     }
     else {
@@ -160,7 +161,7 @@ void FireCAMCamera::readVideoModes() {
         dc1394_get_color_coding_from_video_mode(device, modes.modes[i],
           &coding));
       FireCAMVideoMode videoMode(device, modes.modes[i], coding);
-      videoModes.push_back(videoMode);
+      videoModes.insert(videoMode);
     }
   }
 }
@@ -168,14 +169,14 @@ void FireCAMCamera::readVideoModes() {
 void FireCAMCamera::readFramerates() {
   framerates.clear();
 
-  for (std::list<FireCAMVideoMode>::const_iterator it = videoModes.begin();
+  for (std::set<FireCAMVideoMode>::const_iterator it = videoModes.begin();
       it != videoModes.end(); ++it) {
     if (!it->isScalable()) {
       dc1394framerates_t framerates;
       FireCAMUtils::assert("Failed to query framerates",
         dc1394_video_get_supported_framerates(device, it->mode, &framerates));
       for (int j = 0; j < framerates.num; ++j)
-        this->framerates[*it].push_back(FireCAMFramerate(
+        this->framerates[*it].insert(FireCAMFramerate(
           framerates.framerates[j]));
     }
   }
@@ -193,17 +194,26 @@ void FireCAMCamera::readFeatures() {
     FireCAMUtils::assert("Failed to query feature presence",
       dc1394_feature_is_present(device, features.feature[i].id, &present));
     if (present)
-      this->features.push_back(FireCAMFeature(device, features.feature[i].id));
+      this->features.insert(FireCAMFeature(device, features.feature[i].id));
   }
 }
 
 void FireCAMCamera::readConfiguration() {
   configuration.videoMode = FireCAMVideoMode(device);
   configuration.framerate = FireCAMFramerate(device);
-  for (std::list<FireCAMFeature>::const_iterator it = features.begin();
+  for (std::set<FireCAMFeature>::const_iterator it = features.begin();
       it != features.end(); ++it)
     configuration.features[it->name] = FireCAMFeature(device, it->feature);
 }
 
 void FireCAMCamera::writeConfiguration() {
+  std::set<FireCAMVideoMode>::const_iterator it = videoModes.find(
+    configuration.videoMode);
+  if (it == videoModes.end()) {
+    std::ostringstream stream;
+    configuration.videoMode.write(stream);
+    FireCAMUtils::error("Video mode not supported", stream.str());
+  }
+  else
+    it->writeParameters(device);
 }

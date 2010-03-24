@@ -44,7 +44,7 @@ public:
   const std::map<uint64_t, FireCAMCamera>& getCameras() const;
   /** Access the camera with the specified GUID
     */
-  const FireCAMCamera& getCamera(uint64_t guid) const;
+  FireCAMCamera& getCamera(uint64_t guid);
 
   /** Rescan the bus for available cameras
     */

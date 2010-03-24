@@ -27,6 +27,7 @@
 
 #include <sstream>
 #include <stdexcept>
+#include <map>
 
 #include <dc1394/dc1394.h>
 
@@ -36,7 +37,7 @@ public:
     */
   static void assert(const char* description, dc1394error_t error);
 
-  /** Templated rrror handling using runtime exceptions
+  /** Templated error handling using runtime exceptions
     */
   template <typename T> static void error(const char* message,
       const T& value) {
@@ -55,6 +56,19 @@ public:
       error("Bad conversion", string);
     else
       return value;
+  };
+
+  /** Templated string to enumeratable conversions
+    */
+  template <typename T> static T convert(const std::string& string,
+      const std::map<T, std::string>& strings) {
+    for (typename std::map<T, std::string>::const_iterator it =
+        strings.begin(); it != strings.end(); ++it) {
+      if (string == it->second)
+        return it->first;
+    }
+
+    error("Bad conversion", string);
   };
 };
 

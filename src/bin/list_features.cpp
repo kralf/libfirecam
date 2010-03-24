@@ -32,10 +32,10 @@ int main(int argc, char **argv) {
   uint64_t guid;
   stream >> std::hex >> guid;
 
-  const std::list<FireCAMFeature>& features =
+  const std::set<FireCAMFeature>& features =
     FireCAM::getInstance().getCamera(guid).getFeatures();
 
-  for (std::list<FireCAMFeature>::const_iterator it = features.begin();
+  for (std::set<FireCAMFeature>::const_iterator it = features.begin();
       it != features.end(); ++it) {
     it->write(std::cout);
     std::cout << std::endl;

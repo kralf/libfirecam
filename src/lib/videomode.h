@@ -103,6 +103,9 @@ protected:
   /** Read the video mode parameters from the device
     */
   void readParameters(dc1394camera_t* device);
+  /** Write the video mode parameters to the device
+    */
+  void writeParameters(dc1394camera_t* device) const;
 };
 
 #endif

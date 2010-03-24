@@ -25,7 +25,7 @@
   * \brief FireCAM camera class
   */
 
-#include <list>
+#include <set>
 
 #include "configuration.h"
 
@@ -56,14 +56,14 @@ public:
 
   /** Access the camera's video modes
     */
-  const std::list<FireCAMVideoMode>& getVideoModes() const;
+  const std::set<FireCAMVideoMode>& getVideoModes() const;
   /** Access the camera's framerates for the given video mode
     */
-  const std::list<FireCAMFramerate>& getFramerates(const FireCAMVideoMode&
+  const std::set<FireCAMFramerate>& getFramerates(const FireCAMVideoMode&
     videoMode) const;
   /** Access the camera's features
     */
-  const std::list<FireCAMFeature>& getFeatures() const;
+  const std::set<FireCAMFeature>& getFeatures() const;
 
   /** Access the camera's configuration
     */
@@ -90,9 +90,9 @@ protected:
   dc1394_t* context;
   dc1394camera_t* device;
 
-  std::list<FireCAMVideoMode> videoModes;
-  std::map<FireCAMVideoMode, std::list<FireCAMFramerate> > framerates;
-  std::list<FireCAMFeature> features;
+  std::set<FireCAMVideoMode> videoModes;
+  std::map<FireCAMVideoMode, std::set<FireCAMFramerate> > framerates;
+  std::set<FireCAMFeature> features;
 
   FireCAMConfiguration configuration;
 

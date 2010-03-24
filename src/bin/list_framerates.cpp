@@ -32,19 +32,19 @@ int main(int argc, char **argv) {
   uint64_t guid;
   stream >> std::hex >> guid;
 
-  const std::list<FireCAMVideoMode>& videoModes =
+  const std::set<FireCAMVideoMode>& videoModes =
     FireCAM::getInstance().getCamera(guid).getVideoModes();
 
-  for (std::list<FireCAMVideoMode>::const_iterator it = videoModes.begin();
+  for (std::set<FireCAMVideoMode>::const_iterator it = videoModes.begin();
       it != videoModes.end(); ++it) {
 
     if (!it->isScalable()) {
-      const std::list<FireCAMFramerate>& framerates =
+      const std::set<FireCAMFramerate>& framerates =
         FireCAM::getInstance().getCamera(guid).getFramerates(*it);
 
       it->write(std::cout);
       std::cout << ": ";
-      for (std::list<FireCAMFramerate>::const_iterator it = framerates.begin();
+      for (std::set<FireCAMFramerate>::const_iterator it = framerates.begin();
           it != framerates.end(); ++it) {
         if (it != framerates.begin())
           std::cout << ", ";

@@ -32,10 +32,10 @@ int main(int argc, char **argv) {
   uint64_t guid;
   stream >> std::hex >> guid;
 
-  const std::list<FireCAMVideoMode>& videoModes =
+  const std::set<FireCAMVideoMode>& videoModes =
     FireCAM::getInstance().getCamera(guid).getVideoModes();
 
-  for (std::list<FireCAMVideoMode>::const_iterator it = videoModes.begin();
+  for (std::set<FireCAMVideoMode>::const_iterator it = videoModes.begin();
       it != videoModes.end(); ++it) {
     it->write(std::cout);
     std::cout << std::endl;
