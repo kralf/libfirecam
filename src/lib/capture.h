@@ -18,71 +18,50 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef FIRECAM_CONFIGURATION_H
-#define FIRECAM_CONFIGURATION_H
+#ifndef FIRECAM_CAPTURE_H
+#define FIRECAM_CAPTURE_H
 
-/** \file configuration.h
-  * \brief FireCAM configuration class
+/** \file capture.h
+  * \brief FireCAM capture definition
   */
 
-#include "videomode.h"
-#include "colorfilter.h"
-#include "framerate.h"
-#include "feature.h"
-#include "capture.h"
+#include <iostream>
 
-class FireCAMConfiguration {
+#include <dc1394/dc1394.h>
+
+class FireCAMCapture {
 friend class FireCAMCamera;
 public:
-  /** Construct a FireCAM configuration object
+  /** Construct a FireCAM capture object
     */
-  FireCAMConfiguration(const char* filename = 0);
-  FireCAMConfiguration(const FireCAMConfiguration& src);
+  FireCAMCapture(size_t bufferSize = 64);
+  FireCAMCapture(const FireCAMCapture& src);
 
-  /** Destroy a FireCAM configuration object
+  /** Destroy a FireCAM capture object
     */
-  virtual ~FireCAMConfiguration();
+  virtual ~FireCAMCapture();
 
-  /** FireCAM configuration assignments
+  /** Access the capture buffer size
     */
-  FireCAMConfiguration& operator=(const FireCAMConfiguration& src);
+  void setBufferSize(size_t bufferSize);
+  size_t getBufferSize() const;
 
-  /** Access the video mode
+  /** FireCAM capture assignments
     */
-  void setVideoMode(const FireCAMVideoMode& videoMode);
-  const FireCAMVideoMode& getVideoMode() const;
-  /** Access the framerate
-    */
-  void setFramerate(const FireCAMFramerate& framerate);
-  const FireCAMFramerate& getFramerate() const;
-  /** Access the features
-    */
-  void setFeature(const FireCAMFeature& feature);
-  const FireCAMFeature& getFeature(const char* name) const;
+  FireCAMCapture& operator=(const FireCAMCapture& src);
 
-  /** Access the color filter
-    */
-  void setColorFilter(const FireCAMColorFilter& colorFilter);
-  const FireCAMColorFilter& getColorFilter() const;
-
-  /** Load the FireCAM configuration from the file with the specified
-    * filename
-    */
-  void load(const char* filename);
-
-  /** Load the FireCAM configuration from the given stream
+  /** Load capture configuration from the given stream
     */
   void load(std::istream& stream);
-  /** Save the FireCAM configuration to the given stream
+  /** Save capture configuration to the given stream
     */
   void save(std::ostream& stream) const;
 protected:
-  FireCAMVideoMode videoMode;
-  FireCAMFramerate framerate;
-  std::map<std::string, FireCAMFeature> features;
+  size_t bufferSize;
 
-  FireCAMColorFilter colorFilter;
-  FireCAMCapture capture;
+  /** Write the capture parameters to the specified device
+    */
+  void writeParameters(dc1394camera_t* device) const;
 };
 
 #endif

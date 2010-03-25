@@ -70,13 +70,17 @@ public:
   void setConfiguration(const FireCAMConfiguration& configuration);
   const FireCAMConfiguration& getConfiguration() const;
 
+  /** Access the camera's transmission flag
+    */
+  bool isTransmitting() const;
+
   /** FireCAM camera assignments
     */
   FireCAMCamera& operator=(const FireCAMCamera& src);
 
   /** Connect or disconnect the camera
     */
-  bool connect();
+  void connect();
   void disconnect();
 
   /** Reset camera to factory defaults
@@ -95,6 +99,8 @@ protected:
   std::set<FireCAMFeature> features;
 
   FireCAMConfiguration configuration;
+
+  bool transmitting;
 
   /** Construct a FireCAM camera object
     */

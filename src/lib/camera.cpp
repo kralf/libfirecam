@@ -29,7 +29,8 @@
 
 FireCAMCamera::FireCAMCamera(dc1394_t* context, uint64_t guid) :
   context(context),
-  device(dc1394_camera_new(context, guid)) {
+  device(dc1394_camera_new(context, guid)),
+  transmitting(false) {
   readVideoModes();
   readFramerates();
   readFeatures();
@@ -39,11 +40,15 @@ FireCAMCamera::FireCAMCamera(dc1394_t* context, uint64_t guid) :
 
 FireCAMCamera::FireCAMCamera(const FireCAMCamera& src) :
   context(0),
-  device(0) {
+  device(0),
+  transmitting(false) {
   operator=(src);
 }
 
 FireCAMCamera::~FireCAMCamera() {
+  if (transmitting)
+    disconnect();
+
   if (device)
     dc1394_camera_free(device);
 }
@@ -100,11 +105,17 @@ const FireCAMConfiguration& FireCAMCamera::getConfiguration() const {
   return configuration;
 }
 
+bool FireCAMCamera::isTransmitting() const {
+  return transmitting;
+}
+
 /*****************************************************************************/
 /* Methods                                                                   */
 /*****************************************************************************/
 
 FireCAMCamera& FireCAMCamera::operator=(const FireCAMCamera& src) {
+  if (transmitting)
+    disconnect();
   if (device)
     dc1394_camera_free(device);
 
@@ -120,12 +131,23 @@ FireCAMCamera& FireCAMCamera::operator=(const FireCAMCamera& src) {
   return *this;
 }
 
-bool FireCAMCamera::connect() {
-  writeConfiguration();
-  return false;
+void FireCAMCamera::connect() {
+  if (!transmitting) {
+    writeConfiguration();
+    FireCAMUtils::assert("Failed to start capturing",
+      dc1394_video_set_transmission(device, DC1394_ON));
+
+    transmitting = true;
+  }
 }
 
 void FireCAMCamera::disconnect() {
+  if (transmitting) {
+    FireCAMUtils::assert("Failed to stop capturing",
+      dc1394_video_set_transmission(device, DC1394_OFF));
+
+    transmitting = false;
+  }
 }
 
 void FireCAMCamera::reset() {

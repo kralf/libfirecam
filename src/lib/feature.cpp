@@ -316,12 +316,10 @@ void FireCAMFeature::readParameters(dc1394camera_t* device) {
     }
   }
 
-  if (this->switchable) {
-    dc1394switch_t enabled;
-    FireCAMUtils::assert("Failed to query feature power state",
-      dc1394_feature_get_power(device, feature, &enabled));
-    this->enabled = enabled;
-  }
+  dc1394switch_t enabled;
+  FireCAMUtils::assert("Failed to query feature power state",
+    dc1394_feature_get_power(device, feature, &enabled));
+  this->enabled = enabled;
 
   dc1394feature_mode_t mode;
   FireCAMUtils::assert("Failed to query feature mode",
@@ -363,10 +361,9 @@ void FireCAMFeature::writeParameters(dc1394camera_t* device, const
     FireCAMUtils::assert("Failed to set feature value",
       dc1394_feature_set_value(device, this->feature, (*this)[0]));
 
-  if (switchable)
-    FireCAMUtils::assert("Failed to set feature power state",
-      dc1394_feature_set_power(device, this->feature,
-      feature.enabled ? DC1394_ON: DC1394_OFF));
+  FireCAMUtils::assert("Failed to set feature power state",
+    dc1394_feature_set_power(device, this->feature,
+    feature.enabled ? DC1394_ON: DC1394_OFF));
 
   FireCAMUtils::assert("Failed to set feature mode",
     dc1394_feature_set_mode(device, this->feature, modePresets[feature.mode]));

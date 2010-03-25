@@ -19,8 +19,15 @@
  ***************************************************************************/
 
 #include <sstream>
+#include <signal.h>
 
 #include "firecam.h"
+
+int quit = 0;
+
+void firecam_signaled(int signal) {
+  quit = 1;
+}
 
 int main(int argc, char **argv) {
   if (argc < 2) {
@@ -40,16 +47,21 @@ int main(int argc, char **argv) {
     camera.setConfiguration(configuration);
   }
 
-  std::cout << "Connecting camera... ";
-  std::cout.flush();
-  if (camera.connect()) {
-    std::cout << "success" << std::endl;
-    camera.disconnect();
-  }
-  else
-    std::cout << "failure" << std::endl;
+  std::cout << "Connecting camera" << std::endl;
+  camera.connect();
 
-  camera.getConfiguration().save(std::cout);
+  std::cout << "Camera transmitting";
+  std::cout.flush();
+  signal(SIGINT, firecam_signaled);
+  while (!quit) {
+    std::cout << '.';
+    std::cout.flush();
+    usleep(1e6);
+  }
+  std::cout << std::endl;
+
+  std::cout << "Disconnecting camera" << std::endl;
+  camera.disconnect();
 
   return 0;
 }

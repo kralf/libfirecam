@@ -29,12 +29,7 @@
 /* Constructors and Destructor                                               */
 /*****************************************************************************/
 
-FireCAMConfiguration::FireCAMConfiguration(const char* filename) :
-  imageWidth(0),
-  imageHeight(0),
-  capture(false),
-  transmit(false),
-  numDMABuffers(64) {
+FireCAMConfiguration::FireCAMConfiguration(const char* filename) {
   if (filename)
     load(filename);
 }
@@ -43,15 +38,7 @@ FireCAMConfiguration::FireCAMConfiguration(const FireCAMConfiguration& src) :
   videoMode(src.videoMode),
   framerate(src.framerate),
   features(src.features),
-  colorFilter(src.colorFilter),
-  imageDirectory(src.imageDirectory),
-  imageBasename(src.imageBasename),
-  imageExtension(src.imageExtension),
-  imageWidth(src.imageWidth),
-  imageHeight(src.imageHeight),
-  capture(src.capture),
-  transmit(src.transmit),
-  numDMABuffers(src.numDMABuffers) {
+  colorFilter(src.colorFilter) {
 }
 
 FireCAMConfiguration::~FireCAMConfiguration() {
@@ -112,15 +99,7 @@ FireCAMConfiguration& FireCAMConfiguration::operator=(
   features = src.features;
 
   colorFilter = src.colorFilter;
-  imageDirectory = src.imageDirectory;
-  imageBasename = src.imageBasename;
-  imageExtension = src.imageExtension;
-  numDMABuffers = src.numDMABuffers;
-
-  imageWidth = src.imageWidth;
-  imageHeight = src.imageHeight;
   capture = src.capture;
-  transmit = src.transmit;
 
   return *this;
 }
@@ -158,6 +137,8 @@ void FireCAMConfiguration::load(std::istream& stream) {
       }
       else if (module == "color_filter")
         colorFilter.load(lineStream.seekg(0));
+      else if (module == "capture")
+        capture.load(lineStream.seekg(0));
       else if (!module.empty()) {
         std::ostringstream what;
         what << "Bad configuration module: " << module;
@@ -174,4 +155,5 @@ void FireCAMConfiguration::save(std::ostream& stream) const {
       features.begin(); it != features.end(); ++it)
     it->second.save(stream);
   colorFilter.save(stream);
+  capture.save(stream);
 }
