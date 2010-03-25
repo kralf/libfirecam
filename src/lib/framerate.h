@@ -77,6 +77,9 @@ protected:
   /** Read the framerate parameters
     */
   void readParameters();
+  /** Write the framerate parameters to the specified device
+    */
+  void writeParameters(dc1394camera_t* device) const;
 };
 
 #endif

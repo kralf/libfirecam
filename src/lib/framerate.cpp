@@ -117,3 +117,8 @@ void FireCAMFramerate::readParameters() {
 
   this->framesPerSecond = framesPerSecond;
 }
+
+void FireCAMFramerate::writeParameters(dc1394camera_t* device) const {
+  FireCAMUtils::assert("Failed to set framerate",
+    dc1394_video_set_framerate(device, rate));
+}

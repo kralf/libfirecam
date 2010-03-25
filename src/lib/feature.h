@@ -51,6 +51,14 @@ public:
     ModeStrings();
   };
 
+  class ModePresets :
+    public std::map<Mode, dc1394feature_mode_t> {
+  public:
+    /** Construct a feature mode string object
+      */
+    ModePresets();
+  };
+
   /** Construct a FireCAM feature object
     */
   FireCAMFeature(const char* name = 0, size_t value = 0, bool enabled = true,
@@ -72,6 +80,7 @@ public:
   void setValue(size_t value);
   void setValues(const std::vector<size_t>& values);
   const std::vector<size_t>& getValues() const;
+  size_t operator[](int i) const;
   /** Access the enabled flag of the feature
     */
   void setEnabled(bool enabled);
@@ -113,6 +122,7 @@ public:
   void save(std::ostream& stream) const;
 protected:
   static ModeStrings modeStrings;
+  static ModePresets modePresets;
 
   dc1394feature_t feature;
 
@@ -133,6 +143,10 @@ protected:
   /** Read the feature parameters from the device
     */
   void readParameters(dc1394camera_t* device);
+  /** Write the feature parameters to the device
+    */
+  void writeParameters(dc1394camera_t* device, const FireCAMFeature& feature)
+    const;
 };
 
 #endif

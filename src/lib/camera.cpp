@@ -207,13 +207,38 @@ void FireCAMCamera::readConfiguration() {
 }
 
 void FireCAMCamera::writeConfiguration() {
-  std::set<FireCAMVideoMode>::const_iterator it = videoModes.find(
+  std::set<FireCAMVideoMode>::const_iterator itVideoMode = videoModes.find(
     configuration.videoMode);
-  if (it == videoModes.end()) {
+  if (itVideoMode == videoModes.end()) {
     std::ostringstream stream;
     configuration.videoMode.write(stream);
     FireCAMUtils::error("Video mode not supported", stream.str());
   }
   else
-    it->writeParameters(device);
+    itVideoMode->writeParameters(device);
+
+  std::set<FireCAMFramerate>::const_iterator itFramerate =
+    framerates[*itVideoMode].find(configuration.framerate);
+  if (itFramerate == framerates[*itVideoMode].end()) {
+    std::ostringstream stream;
+    configuration.framerate.write(stream);
+    FireCAMUtils::error("Framerate not supported", stream.str());
+  }
+  else
+    itFramerate->writeParameters(device);
+
+  for (std::map<std::string, FireCAMFeature>::const_iterator
+      itConfigurationFeature = configuration.features.begin();
+      itConfigurationFeature != configuration.features.end();
+      ++itConfigurationFeature) {
+    std::set<FireCAMFeature>::const_iterator itFeature =
+      features.find(itConfigurationFeature->second);
+    if (itFeature == features.end()) {
+      std::ostringstream stream;
+      itConfigurationFeature->second.write(stream);
+      FireCAMUtils::error("Feature not supported", stream.str());
+    }
+    else
+      itFeature->writeParameters(device, itConfigurationFeature->second);
+  }
 }

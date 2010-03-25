@@ -100,10 +100,10 @@ protected:
   FireCAMVideoMode(dc1394camera_t* device, dc1394video_mode_t mode,
     dc1394color_coding_t coding);
 
-  /** Read the video mode parameters from the device
+  /** Read the video mode parameters
     */
   void readParameters(dc1394camera_t* device);
-  /** Write the video mode parameters to the device
+  /** Write the video mode parameters to the specified device
     */
   void writeParameters(dc1394camera_t* device) const;
 };

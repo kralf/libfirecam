@@ -29,6 +29,7 @@
 /*****************************************************************************/
 
 FireCAMFeature::ModeStrings FireCAMFeature::modeStrings;
+FireCAMFeature::ModePresets FireCAMFeature::modePresets;
 
 /*****************************************************************************/
 /* Constructors and Destructor                                               */
@@ -38,6 +39,13 @@ FireCAMFeature::ModeStrings::ModeStrings() {
   (*this)[manual] = "manual";
   (*this)[permanentAuto] = "auto";
   (*this)[onePushAuto] = "one_push_auto";
+}
+
+FireCAMFeature::ModePresets::ModePresets() {
+  (*this)[manual] = DC1394_FEATURE_MODE_MANUAL;
+  (*this)[permanentAuto] = DC1394_FEATURE_MODE_AUTO;
+  (*this)[onePushAuto] = DC1394_FEATURE_MODE_ONE_PUSH_AUTO
+;
 }
 
 FireCAMFeature::FireCAMFeature(const char* name, size_t value, bool enabled,
@@ -125,6 +133,13 @@ const std::vector<size_t>& FireCAMFeature::getValues() const {
   return values;
 }
 
+size_t FireCAMFeature::operator[](int i) const {
+  if ((i < 0) || (i > values.size()))
+    FireCAMUtils::error("Bad feature value index", i);
+  else
+    return values[i];
+}
+
 void FireCAMFeature::setEnabled(bool enabled) {
   this->enabled = enabled;
 }
@@ -185,23 +200,32 @@ bool FireCAMFeature::operator<(const FireCAMFeature& feature) const {
 }
 
 void FireCAMFeature::write(std::ostream& stream) const {
-  stream << name << ": ";
+  stream << name;
 
   if (readable)
-    stream << "readable";
+    stream << " (readable";
   if (switchable) {
     if (readable)
       stream << ", ";
+    else
+      stream << " (";
     stream << "switchable";
   }
-  if ((readable || switchable) && !modes.empty())
-    stream << ", ";
-  for (std::list<Mode>::const_iterator it = modes.begin();
-      it != modes.end(); ++it) {
-    if (it != modes.begin())
-      stream << "/";
-    stream << modeStrings[*it];
+  if (!modes.empty()) {
+    if (readable || switchable)
+      stream << ", ";
+    else
+      stream << " (";
+    for (std::list<Mode>::const_iterator it = modes.begin();
+        it != modes.end(); ++it) {
+      if (it != modes.begin())
+        stream << "/";
+      stream << modeStrings[*it];
+    }
+    stream << ")";
   }
+  else if (readable || switchable)
+    stream << ")";
 }
 
 void FireCAMFeature::load(std::istream& stream) {
@@ -261,6 +285,7 @@ void FireCAMFeature::readParameters(dc1394camera_t* device) {
     dc1394_feature_is_switchable(device, feature, &switchable));
   this->switchable = switchable;
 
+  values.clear();
   if (this->readable) {
     if (feature == DC1394_FEATURE_TEMPERATURE) {
       uint32_t target, current;
@@ -320,4 +345,29 @@ void FireCAMFeature::readParameters(dc1394camera_t* device) {
     else
       this->modes.push_back(manual);
   }
+}
+
+void FireCAMFeature::writeParameters(dc1394camera_t* device, const
+  FireCAMFeature& feature) const {
+  if (this->feature == DC1394_FEATURE_TEMPERATURE)
+    FireCAMUtils::assert("Failed to set temperature values",
+      dc1394_feature_temperature_set_value(device, (*this)[0]));
+  else if (this->feature == DC1394_FEATURE_WHITE_BALANCE)
+    FireCAMUtils::assert("Failed to set white balance values",
+      dc1394_feature_whitebalance_set_value(device, (*this)[0], (*this)[1]));
+  else if (this->feature == DC1394_FEATURE_WHITE_SHADING)
+    FireCAMUtils::assert("Failed to set white shading values",
+      dc1394_feature_whiteshading_set_value(device, (*this)[0], (*this)[1],
+      (*this)[2]));
+  else
+    FireCAMUtils::assert("Failed to set feature value",
+      dc1394_feature_set_value(device, this->feature, (*this)[0]));
+
+  if (switchable)
+    FireCAMUtils::assert("Failed to set feature power state",
+      dc1394_feature_set_power(device, this->feature,
+      feature.enabled ? DC1394_ON: DC1394_OFF));
+
+  FireCAMUtils::assert("Failed to set feature mode",
+    dc1394_feature_set_mode(device, this->feature, modePresets[feature.mode]));
 }

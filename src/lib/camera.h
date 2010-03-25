@@ -110,9 +110,11 @@ protected:
     */
   void readFeatures();
 
-  /** Read or write the camera configuration from the device
+  /** Read the configuration from the camera
     */
   void readConfiguration();
+  /** Write the configuration to the camera
+    */
   void writeConfiguration();
 };
 
