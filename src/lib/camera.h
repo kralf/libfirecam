@@ -29,6 +29,8 @@
 
 #include "configuration.h"
 
+#include "frame.h"
+
 class FireCAMCamera {
 friend class FireCAM;
 public:
@@ -39,10 +41,6 @@ public:
   /** Destroy a FireCAM camera object
     */
   virtual ~FireCAMCamera();
-
-  /** Access the camera's raw device
-    */
-  dc1394camera_t* getDevice() const;
 
   /** Access the camera's GUID
     */
@@ -73,6 +71,9 @@ public:
   /** Access the camera's transmission flag
     */
   bool isTransmitting() const;
+  /** Access the camera's bandwidth usage
+    */
+  double getBandwidthUsage() const;
 
   /** FireCAM camera assignments
     */
@@ -82,6 +83,10 @@ public:
     */
   void connect();
   void disconnect();
+
+  /** Capture a camera frame
+    */
+  void capture(FireCAMFrame& frame);
 
   /** Reset camera to factory defaults
     */

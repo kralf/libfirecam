@@ -55,10 +55,6 @@ FireCAMCamera::~FireCAMCamera() {
 /* Accessors                                                                 */
 /*****************************************************************************/
 
-dc1394camera_t* FireCAMCamera::getDevice() const {
-  return device;
-}
-
 uint64_t FireCAMCamera::getGUID() const {
   return device->guid;
 }
@@ -111,6 +107,14 @@ bool FireCAMCamera::isTransmitting() const {
   return transmitting;
 }
 
+double FireCAMCamera::getBandwidthUsage() const {
+  uint32_t bandwidth;
+  FireCAMUtils::assert("Failed to query bandwidth usage",
+    dc1394_video_get_bandwidth_usage(device, &bandwidth));
+
+  return bandwidth/4915.0;
+}
+
 /*****************************************************************************/
 /* Methods                                                                   */
 /*****************************************************************************/
@@ -137,16 +141,23 @@ FireCAMCamera& FireCAMCamera::operator=(const FireCAMCamera& src) {
 void FireCAMCamera::connect() {
   if (!isTransmitting()) {
     writeConfiguration();
-    FireCAMUtils::assert("Failed to start capturing",
+    FireCAMUtils::assert("Failed to start transmission",
       dc1394_video_set_transmission(device, DC1394_ON));
   }
 }
 
 void FireCAMCamera::disconnect() {
   if (isTransmitting()) {
-    FireCAMUtils::assert("Failed to stop capturing",
+    FireCAMUtils::assert("Failed to stop transmission",
       dc1394_video_set_transmission(device, DC1394_OFF));
+    FireCAMUtils::assert("Failed to stop capturing",
+      dc1394_capture_stop(device));
   }
+}
+
+void FireCAMCamera::capture(FireCAMFrame& frame) {
+  FireCAMFrame rawFrame(device);
+  configuration.colorFilter.filter(rawFrame, frame);
 }
 
 void FireCAMCamera::reset() {

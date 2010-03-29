@@ -26,35 +26,62 @@
 /* Statics                                                                   */
 /*****************************************************************************/
 
-FireCAMColorFilter::PatternStrings FireCAMColorFilter::patternStrings;
-FireCAMColorFilter::PatternPresets FireCAMColorFilter::patternPresets;
+FireCAMColorFilter::TileStrings FireCAMColorFilter::tileStrings;
+FireCAMColorFilter::MethodStrings FireCAMColorFilter::methodStrings;
+FireCAMColorFilter::TilePresets FireCAMColorFilter::tilePresets;
+FireCAMColorFilter::MethodPresets FireCAMColorFilter::methodPresets;
 
 /*****************************************************************************/
 /* Constructors and Destructor                                               */
 /*****************************************************************************/
 
-FireCAMColorFilter::PatternStrings::PatternStrings() {
+FireCAMColorFilter::TileStrings::TileStrings() {
   (*this)[rggb] = "rggb";
   (*this)[gbrg] = "gbrg";
   (*this)[grbg] = "grbg";
   (*this)[bggr] = "bggr";
 }
 
-FireCAMColorFilter::PatternPresets::PatternPresets() {
+FireCAMColorFilter::MethodStrings::MethodStrings() {
+  (*this)[nearest] = "nearest";
+  (*this)[simple] = "simple";
+  (*this)[bilinear] = "bilinear";
+  (*this)[hq_linear] = "hq_linear";
+  (*this)[downsample] = "downsample";
+  (*this)[edge_sense] = "edge_sense";
+  (*this)[vng] = "vng";
+  (*this)[ahd] = "ahd";
+}
+
+FireCAMColorFilter::TilePresets::TilePresets() {
   (*this)[rggb] = DC1394_COLOR_FILTER_RGGB;
   (*this)[gbrg] = DC1394_COLOR_FILTER_GBRG;
   (*this)[grbg] = DC1394_COLOR_FILTER_GRBG;
   (*this)[bggr] = DC1394_COLOR_FILTER_BGGR;
 }
 
-FireCAMColorFilter::FireCAMColorFilter(bool enabled, Pattern pattern) :
-  enabled(enabled) {
-  setPattern(pattern);
+FireCAMColorFilter::MethodPresets::MethodPresets() {
+  (*this)[nearest] = DC1394_BAYER_METHOD_NEAREST;
+  (*this)[simple] = DC1394_BAYER_METHOD_SIMPLE;
+  (*this)[bilinear] = DC1394_BAYER_METHOD_BILINEAR;
+  (*this)[hq_linear] = DC1394_BAYER_METHOD_HQLINEAR;
+  (*this)[downsample] = DC1394_BAYER_METHOD_DOWNSAMPLE;
+  (*this)[edge_sense] = DC1394_BAYER_METHOD_EDGESENSE;
+  (*this)[vng] = DC1394_BAYER_METHOD_VNG;
+  (*this)[ahd] = DC1394_BAYER_METHOD_AHD;
+}
+
+FireCAMColorFilter::FireCAMColorFilter(bool enabled, Tile tile, Method
+    method) :
+  enabled(enabled),
+  tile(tile),
+  method(method) {
 }
 
 FireCAMColorFilter::FireCAMColorFilter(const FireCAMColorFilter& src) :
   enabled(src.enabled),
-  pattern(src.pattern) {
+  tile(src.tile),
+  method(src.method) {
 }
 
 FireCAMColorFilter::~FireCAMColorFilter() {
@@ -72,12 +99,20 @@ bool FireCAMColorFilter::isEnabled() const {
   return enabled;
 }
 
-void FireCAMColorFilter::setPattern(Pattern pattern) {
-  this->pattern = pattern;
+void FireCAMColorFilter::setTile(Tile tile) {
+  this->tile = tile;
 }
 
-FireCAMColorFilter::Pattern FireCAMColorFilter::getPattern() const {
-  return pattern;
+FireCAMColorFilter::Tile FireCAMColorFilter::getTile() const {
+  return tile;
+}
+
+void FireCAMColorFilter::setMethod(Method method) {
+  this->method = method;
+}
+
+FireCAMColorFilter::Method FireCAMColorFilter::getMethod() const {
+  return method;
 }
 
 /*****************************************************************************/
@@ -87,13 +122,19 @@ FireCAMColorFilter::Pattern FireCAMColorFilter::getPattern() const {
 FireCAMColorFilter& FireCAMColorFilter::operator=(
     const FireCAMColorFilter& src) {
   enabled = src.enabled;
-  pattern = src.pattern;
+
+  tile = src.tile;
+  method = src.method;
 
   return *this;
 }
 
 void FireCAMColorFilter::write(std::ostream& stream) const {
-  stream << patternStrings[pattern];
+  if (enabled)
+    stream << "on (" << tileStrings[tile] << ", " << methodStrings[method] <<
+      ")";
+  else
+    stream << "off";
 }
 
 void FireCAMColorFilter::load(std::istream& stream) {
@@ -105,8 +146,10 @@ void FireCAMColorFilter::load(std::istream& stream) {
   if (module == "color_filter") {
     if (option == "enabled")
       enabled = FireCAMUtils::convert<bool>(value);
-    else if (option == "pattern")
-      pattern = FireCAMUtils::convert(value, patternStrings);
+    else if (option == "tile")
+      tile = FireCAMUtils::convert(value, tileStrings);
+    else if (option == "method")
+      method = FireCAMUtils::convert(value, methodStrings);
     else
       FireCAMUtils::error("Bad color filter option: ", option);
   }
@@ -114,5 +157,14 @@ void FireCAMColorFilter::load(std::istream& stream) {
 
 void FireCAMColorFilter::save(std::ostream& stream) const {
   stream << "color_filter.enabled = " << enabled << std::endl;
-  stream << "color_filter.pattern = " << patternStrings[pattern] << std::endl;
+  stream << "color_filter.tile = " << tileStrings[tile] << std::endl;
+  stream << "color_filter.method = " << methodStrings[method] << std::endl;
+}
+
+void FireCAMColorFilter::filter(const FireCAMFrame& inputFrame, FireCAMFrame&
+  outputFrame) const {
+  if (enabled) {
+  }
+  else
+    outputFrame = inputFrame;
 }

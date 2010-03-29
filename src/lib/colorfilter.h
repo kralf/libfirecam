@@ -28,38 +28,66 @@
 #include <map>
 #include <string>
 
-#include <dc1394/dc1394.h>
+#include "frame.h"
 
 class FireCAMColorFilter {
 public:
   /** Types and subclasses
     */
-  enum Pattern {
+  enum Tile {
     rggb,
     gbrg,
     grbg,
     bggr
   };
 
-  class PatternStrings :
-    public std::map<Pattern, std::string> {
-  public:
-    /** Construct a color filter pattern string object
-      */
-    PatternStrings();
+  enum Method {
+    nearest,
+    simple,
+    bilinear,
+    hq_linear,
+    downsample,
+    edge_sense,
+    vng,
+    ahd
   };
 
-  class PatternPresets :
-    public std::map<Pattern, dc1394color_filter_t> {
+  class TileStrings :
+    public std::map<Tile, std::string> {
   public:
-    /** Construct a color filter pattern preset object
+    /** Construct a color filter tile string object
       */
-    PatternPresets();
+    TileStrings();
+  };
+
+  class MethodStrings :
+    public std::map<Method, std::string> {
+  public:
+    /** Construct a color filter method string object
+      */
+    MethodStrings();
+  };
+
+  class TilePresets :
+    public std::map<Tile, dc1394color_filter_t> {
+  public:
+    /** Construct a color filter tile preset object
+      */
+    TilePresets();
+  };
+
+  class MethodPresets :
+    public std::map<Method, dc1394bayer_method_t> {
+  public:
+    /** Construct a color filter method preset object
+      */
+    MethodPresets();
   };
 
   /** Construct a FireCAM color filter object
     */
-  FireCAMColorFilter(bool enabled = true, Pattern pattern = rggb);
+  FireCAMColorFilter(bool enabled = false, Tile tile = rggb, Method
+    method = nearest);
   FireCAMColorFilter(const FireCAMColorFilter& src);
 
   /** Destroy a FireCAM color filter object
@@ -70,10 +98,14 @@ public:
     */
   void setEnabled(bool enabled);
   bool isEnabled() const;
-  /** Access the color filter pattern
+  /** Access the color filter tile
     */
-  void setPattern(Pattern pattern);
-  Pattern getPattern() const;
+  void setTile(Tile tile);
+  Tile getTile() const;
+  /** Access the color filter method
+    */
+  void setMethod(Method method);
+  Method getMethod() const;
 
   /** FireCAM color filter assignments
     */
@@ -89,12 +121,20 @@ public:
   /** Save color filter configuration to the given stream
     */
   void save(std::ostream& stream) const;
+
+  /** Filter the given input frame
+    */
+  void filter(const FireCAMFrame& inputFrame, FireCAMFrame& outputFrame) const;
 protected:
-  static PatternStrings patternStrings;
-  static PatternPresets patternPresets;
+  static TileStrings tileStrings;
+  static MethodStrings methodStrings;
+  static TilePresets tilePresets;
+  static MethodPresets methodPresets;
 
   bool enabled;
-  Pattern pattern;
+
+  Tile tile;
+  Method method;
 };
 
 #endif
