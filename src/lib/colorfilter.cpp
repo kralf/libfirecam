@@ -27,6 +27,7 @@
 /*****************************************************************************/
 
 FireCAMColorFilter::PatternStrings FireCAMColorFilter::patternStrings;
+FireCAMColorFilter::PatternPresets FireCAMColorFilter::patternPresets;
 
 /*****************************************************************************/
 /* Constructors and Destructor                                               */
@@ -39,13 +40,19 @@ FireCAMColorFilter::PatternStrings::PatternStrings() {
   (*this)[bggr] = "bggr";
 }
 
+FireCAMColorFilter::PatternPresets::PatternPresets() {
+  (*this)[rggb] = DC1394_COLOR_FILTER_RGGB;
+  (*this)[gbrg] = DC1394_COLOR_FILTER_GBRG;
+  (*this)[grbg] = DC1394_COLOR_FILTER_GRBG;
+  (*this)[bggr] = DC1394_COLOR_FILTER_BGGR;
+}
+
 FireCAMColorFilter::FireCAMColorFilter(bool enabled, Pattern pattern) :
   enabled(enabled) {
   setPattern(pattern);
 }
 
 FireCAMColorFilter::FireCAMColorFilter(const FireCAMColorFilter& src) :
-  filter(src.filter),
   enabled(src.enabled),
   pattern(src.pattern) {
 }
@@ -67,15 +74,6 @@ bool FireCAMColorFilter::isEnabled() const {
 
 void FireCAMColorFilter::setPattern(Pattern pattern) {
   this->pattern = pattern;
-
-  if (pattern == gbrg)
-    filter = DC1394_COLOR_FILTER_GBRG;
-  else if (pattern == grbg)
-    filter = DC1394_COLOR_FILTER_GRBG;
-  else if (pattern == bggr)
-    filter = DC1394_COLOR_FILTER_BGGR;
-  else
-    filter = DC1394_COLOR_FILTER_RGGB;
 }
 
 FireCAMColorFilter::Pattern FireCAMColorFilter::getPattern() const {
@@ -88,8 +86,6 @@ FireCAMColorFilter::Pattern FireCAMColorFilter::getPattern() const {
 
 FireCAMColorFilter& FireCAMColorFilter::operator=(
     const FireCAMColorFilter& src) {
-  filter = src.filter;
-
   enabled = src.enabled;
   pattern = src.pattern;
 
@@ -110,7 +106,7 @@ void FireCAMColorFilter::load(std::istream& stream) {
     if (option == "enabled")
       enabled = FireCAMUtils::convert<bool>(value);
     else if (option == "pattern")
-      setPattern(FireCAMUtils::convert(value, patternStrings));
+      pattern = FireCAMUtils::convert(value, patternStrings);
     else
       FireCAMUtils::error("Bad color filter option: ", option);
   }

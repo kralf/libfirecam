@@ -54,7 +54,7 @@ public:
   class ModePresets :
     public std::map<Mode, dc1394feature_mode_t> {
   public:
-    /** Construct a feature mode string object
+    /** Construct a feature mode preset object
       */
     ModePresets();
   };

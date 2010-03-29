@@ -26,15 +26,49 @@
   */
 
 #include <iostream>
+#include <map>
+#include <string>
 
 #include <dc1394/dc1394.h>
 
 class FireCAMCapture {
 friend class FireCAMCamera;
 public:
+  /** Types and subclasses
+    */
+  enum Mode {
+    legacy,
+    fast
+  };
+
+  class ModeStrings :
+    public std::map<Mode, std::string> {
+  public:
+    /** Construct a capture mode string object
+      */
+    ModeStrings();
+  };
+
+  class ModePresets :
+    public std::map<size_t, dc1394operation_mode_t> {
+  public:
+    /** Construct a capture mode preset object
+      */
+    ModePresets();
+  };
+
+  class SpeedPresets :
+    public std::map<size_t, dc1394speed_t> {
+  public:
+    /** Construct a capture speed preset object
+      */
+    SpeedPresets();
+  };
+
   /** Construct a FireCAM capture object
     */
-  FireCAMCapture(size_t bufferSize = 64);
+  FireCAMCapture(size_t bufferSize = 64, Mode mode = legacy,
+    size_t speed = 400);
   FireCAMCapture(const FireCAMCapture& src);
 
   /** Destroy a FireCAM capture object
@@ -45,6 +79,14 @@ public:
     */
   void setBufferSize(size_t bufferSize);
   size_t getBufferSize() const;
+  /** Access the capture mode
+    */
+  void setMode(Mode mode);
+  Mode getMode() const;
+  /** Access the capture speed
+    */
+  void setSpeed(size_t speed);
+  size_t getSpeed() const;
 
   /** FireCAM capture assignments
     */
@@ -57,7 +99,13 @@ public:
     */
   void save(std::ostream& stream) const;
 protected:
+  static ModeStrings modeStrings;
+  static ModePresets modePresets;
+  static SpeedPresets speedPresets;
+
   size_t bufferSize;
+  Mode mode;
+  size_t speed;
 
   /** Write the capture parameters to the specified device
     */

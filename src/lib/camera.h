@@ -100,8 +100,6 @@ protected:
 
   FireCAMConfiguration configuration;
 
-  bool transmitting;
-
   /** Construct a FireCAM camera object
     */
   FireCAMCamera(dc1394_t* context, uint64_t guid);

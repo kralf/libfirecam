@@ -29,8 +29,7 @@
 
 FireCAMCamera::FireCAMCamera(dc1394_t* context, uint64_t guid) :
   context(context),
-  device(dc1394_camera_new(context, guid)),
-  transmitting(false) {
+  device(dc1394_camera_new(context, guid)) {
   readVideoModes();
   readFramerates();
   readFeatures();
@@ -40,13 +39,12 @@ FireCAMCamera::FireCAMCamera(dc1394_t* context, uint64_t guid) :
 
 FireCAMCamera::FireCAMCamera(const FireCAMCamera& src) :
   context(0),
-  device(0),
-  transmitting(false) {
+  device(0) {
   operator=(src);
 }
 
 FireCAMCamera::~FireCAMCamera() {
-  if (transmitting)
+  if (isTransmitting())
     disconnect();
 
   if (device)
@@ -106,6 +104,10 @@ const FireCAMConfiguration& FireCAMCamera::getConfiguration() const {
 }
 
 bool FireCAMCamera::isTransmitting() const {
+  dc1394switch_t transmitting;
+  FireCAMUtils::assert("Failed to query transmission status",
+    dc1394_video_get_transmission(device, &transmitting));
+
   return transmitting;
 }
 
@@ -114,10 +116,11 @@ bool FireCAMCamera::isTransmitting() const {
 /*****************************************************************************/
 
 FireCAMCamera& FireCAMCamera::operator=(const FireCAMCamera& src) {
-  if (transmitting)
-    disconnect();
-  if (device)
+  if (device) {
+    if (isTransmitting())
+      disconnect();
     dc1394_camera_free(device);
+  }
 
   context = src.context;
   device = dc1394_camera_new(src.context, src.device->guid);
@@ -132,21 +135,17 @@ FireCAMCamera& FireCAMCamera::operator=(const FireCAMCamera& src) {
 }
 
 void FireCAMCamera::connect() {
-  if (!transmitting) {
+  if (!isTransmitting()) {
     writeConfiguration();
     FireCAMUtils::assert("Failed to start capturing",
       dc1394_video_set_transmission(device, DC1394_ON));
-
-    transmitting = true;
   }
 }
 
 void FireCAMCamera::disconnect() {
-  if (transmitting) {
+  if (isTransmitting()) {
     FireCAMUtils::assert("Failed to stop capturing",
       dc1394_video_set_transmission(device, DC1394_OFF));
-
-    transmitting = false;
   }
 }
 
@@ -263,4 +262,6 @@ void FireCAMCamera::writeConfiguration() {
     else
       itFeature->writeParameters(device, itConfigurationFeature->second);
   }
+
+  configuration.capture.writeParameters(device);
 }

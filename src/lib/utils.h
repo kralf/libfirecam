@@ -53,7 +53,7 @@ public:
     T value;
 
     if (!(stream >> value))
-      error("Bad conversion", string);
+      error("Bad value conversion", string);
     else
       return value;
   };
@@ -68,7 +68,18 @@ public:
         return it->first;
     }
 
-    error("Bad conversion", string);
+    error("Bad value conversion", string);
+  };
+
+  /** Templated enumeratable conversions
+    */
+  template <typename T, typename U> static U convert(T t,
+      const std::map<T, U>& presets) {
+    typename std::map<T, U>::const_iterator it = presets.find(t);
+    if (it == presets.end())
+      error("Bad preset conversion", t);
+    else
+      return it->second;
   };
 };
 

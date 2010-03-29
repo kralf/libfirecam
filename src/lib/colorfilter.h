@@ -49,6 +49,14 @@ public:
     PatternStrings();
   };
 
+  class PatternPresets :
+    public std::map<Pattern, dc1394color_filter_t> {
+  public:
+    /** Construct a color filter pattern preset object
+      */
+    PatternPresets();
+  };
+
   /** Construct a FireCAM color filter object
     */
   FireCAMColorFilter(bool enabled = true, Pattern pattern = rggb);
@@ -83,8 +91,7 @@ public:
   void save(std::ostream& stream) const;
 protected:
   static PatternStrings patternStrings;
-
-  dc1394color_filter_t filter;
+  static PatternPresets patternPresets;
 
   bool enabled;
   Pattern pattern;
