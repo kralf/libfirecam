@@ -88,6 +88,14 @@ void FireCAMConfiguration::setColorFilter(const FireCAMColorFilter&
   this->colorFilter = colorFilter;
 }
 
+void FireCAMConfiguration::setCapture(const FireCAMCapture& capture) {
+  this->capture = capture;
+}
+
+const FireCAMCapture& FireCAMConfiguration::getCapture() const {
+  return capture;
+}
+
 /*****************************************************************************/
 /* Methods                                                                   */
 /*****************************************************************************/

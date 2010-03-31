@@ -64,6 +64,10 @@ public:
     */
   void setColorFilter(const FireCAMColorFilter& colorFilter);
   const FireCAMColorFilter& getColorFilter() const;
+  /** Access the capture
+    */
+  void setCapture(const FireCAMCapture& capture);
+  const FireCAMCapture& getCapture() const;
 
   /** Load the FireCAM configuration from the file with the specified
     * filename

@@ -28,8 +28,8 @@
 /* Statics                                                                   */
 /*****************************************************************************/
 
-FireCAMFeature::ModeStrings FireCAMFeature::modeStrings;
-FireCAMFeature::ModePresets FireCAMFeature::modePresets;
+const FireCAMFeature::ModeStrings FireCAMFeature::modeStrings;
+const FireCAMFeature::ModePresets FireCAMFeature::modePresets;
 
 /*****************************************************************************/
 /* Constructors and Destructor                                               */
@@ -220,7 +220,7 @@ void FireCAMFeature::write(std::ostream& stream) const {
         it != modes.end(); ++it) {
       if (it != modes.begin())
         stream << "/";
-      stream << modeStrings[*it];
+      stream << FireCAMUtils::convert(*it, modeStrings);
     }
     stream << ")";
   }
@@ -240,15 +240,8 @@ void FireCAMFeature::load(std::istream& stream) {
 
     if (option == "enabled")
       enabled = FireCAMUtils::convert<bool>(value);
-    else if (option == "values") {
-      values.clear();
-      std::istringstream valueStream(value);
-
-      while (!valueStream.eof()) {
-        std::getline(valueStream, value, ',');
-        values.push_back(FireCAMUtils::convert<size_t>(value));
-      }
-    }
+    else if (option == "values")
+      FireCAMUtils::convert(value, values);
     else if (option == "mode")
       mode = FireCAMUtils::convert(value, modeStrings);
     else
@@ -260,18 +253,13 @@ void FireCAMFeature::save(std::ostream& stream) const {
   if (switchable)
     stream << "features." << name << ".enabled = " << enabled << std::endl;
 
-  if (!values.empty()) {
-    stream << "features." << name << ".values = ";
-    for (int i = 0; i < values.size(); ++i) {
-      if (i)
-        stream << ", ";
-      stream << values[i];
-    }
-    stream << std::endl;
-  }
+  if (!values.empty())
+    stream << "features." << name << ".values = " <<
+      FireCAMUtils::convert(values) << std::endl;
 
-  stream << "features." << name << ".mode = " << modeStrings[mode] <<
-    std::endl;
+  if (modes.size() > 1)
+    stream << "features." << name << ".mode = " <<
+    FireCAMUtils::convert(mode, modeStrings) << std::endl;
 }
 
 void FireCAMFeature::readParameters(dc1394camera_t* device) {
@@ -346,25 +334,27 @@ void FireCAMFeature::readParameters(dc1394camera_t* device) {
 }
 
 void FireCAMFeature::writeParameters(dc1394camera_t* device, const
-  FireCAMFeature& feature) const {
+    FireCAMFeature& feature) const {
   if (this->feature == DC1394_FEATURE_TEMPERATURE)
     FireCAMUtils::assert("Failed to set temperature values",
-      dc1394_feature_temperature_set_value(device, (*this)[0]));
+      dc1394_feature_temperature_set_value(device, feature[0]));
   else if (this->feature == DC1394_FEATURE_WHITE_BALANCE)
     FireCAMUtils::assert("Failed to set white balance values",
-      dc1394_feature_whitebalance_set_value(device, (*this)[0], (*this)[1]));
+      dc1394_feature_whitebalance_set_value(device, feature[0], feature[1]));
   else if (this->feature == DC1394_FEATURE_WHITE_SHADING)
     FireCAMUtils::assert("Failed to set white shading values",
-      dc1394_feature_whiteshading_set_value(device, (*this)[0], (*this)[1],
-      (*this)[2]));
+      dc1394_feature_whiteshading_set_value(device, feature[0], feature[1],
+      feature[2]));
   else
     FireCAMUtils::assert("Failed to set feature value",
-      dc1394_feature_set_value(device, this->feature, (*this)[0]));
+      dc1394_feature_set_value(device, this->feature, feature[0]));
 
   FireCAMUtils::assert("Failed to set feature power state",
     dc1394_feature_set_power(device, this->feature,
     feature.enabled ? DC1394_ON: DC1394_OFF));
 
-  FireCAMUtils::assert("Failed to set feature mode",
-    dc1394_feature_set_mode(device, this->feature, modePresets[feature.mode]));
+  if (modes.size() > 1)
+    FireCAMUtils::assert("Failed to set feature mode",
+      dc1394_feature_set_mode(device, this->feature,
+      FireCAMUtils::convert(feature.mode, modePresets)));
 }

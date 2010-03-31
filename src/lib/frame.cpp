@@ -26,48 +26,42 @@
 /* Constructors and Destructor                                               */
 /*****************************************************************************/
 
-FireCAMFrame::FireCAMFrame(size_t width, size_t height) :
-  frame(new dc1394video_frame_t()),
+FireCAMFrame::FireCAMFrame(size_t width, size_t height, const FireCAMColor&
+    color) :
+  frame(0),
+  width(width),
+  height(height),
+  color(color),
+  image(0),
+  timestamp(0.0),
   buffered(false) {
-  frame->size[0] = width;
-  frame->size[1] = height;
-  frame->data_depth = 24;
-
-  frame->color_coding = DC1394_COLOR_CODING_RGB8;
-
-  frame->image_bytes = frame->size[0]*frame->size[1]*frame->data_depth/8;
-  frame->image = new unsigned char[frame->image_bytes];
+  image = new unsigned char[getSize()];
 }
 
 FireCAMFrame::FireCAMFrame(dc1394camera_t* device) :
+  frame(0),
+  width(0),
+  height(0),
+  image(0),
+  timestamp(0.0),
   buffered(true) {
   FireCAMUtils::assert("Failed to dequeue frame",
     dc1394_capture_dequeue(device, DC1394_CAPTURE_POLICY_WAIT, &frame));
+  readParameters();
 }
 
 FireCAMFrame::FireCAMFrame(const FireCAMFrame& src) :
-  frame(new dc1394video_frame_t()),
+  frame(0),
+  width(0),
+  height(0),
+  image(0),
+  timestamp(0.0),
   buffered(false) {
-  frame->size[0] = src.frame->size[0];
-  frame->size[1] = src.frame->size[1];
-  frame->data_depth = 24;
-
-  frame->color_coding = DC1394_COLOR_CODING_RGB8;
-
-  frame->image_bytes = frame->size[0]*frame->size[1]*frame->data_depth/8;
-  frame->image = new unsigned char[frame->image_bytes];
-
   operator=(src);
 }
 
 FireCAMFrame::~FireCAMFrame() {
-  if (!buffered) {
-    delete [] frame->image;
-    delete frame;
-  }
-  else
-    FireCAMUtils::assert("Failed to enqueue frame",
-      dc1394_capture_enqueue(frame->camera, frame));
+  clear();
 }
 
 /*****************************************************************************/
@@ -75,39 +69,35 @@ FireCAMFrame::~FireCAMFrame() {
 /*****************************************************************************/
 
 size_t FireCAMFrame::getWidth() const {
-  return frame->size[0];
+  return width;
 }
 
 size_t FireCAMFrame::getHeight() const {
-  return frame->size[1];
+  return height;
 }
 
-size_t FireCAMFrame::getDepth() const {
-  return frame->data_depth;
-}
-
-const unsigned char* FireCAMFrame::getImage() const {
-  return frame->image;
-}
-
-bool FireCAMFrame::isColor() const {
-  dc1394bool_t color;
-  FireCAMUtils::assert("Failed to query color information",
-    dc1394_is_color(frame->color_coding, &color));
-
+const FireCAMColor& FireCAMFrame::getColor() const {
   return color;
 }
 
-bool FireCAMFrame::isBuffered() const {
-  return buffered;
+const unsigned char* FireCAMFrame::getImage() const {
+  return image;
 }
 
 double FireCAMFrame::getTimestamp() const {
-  return frame->timestamp*1e-6;
+  return timestamp;
+}
+
+size_t FireCAMFrame::getSize() const {
+  return width*height*color.getDepth()/8;
+}
+
+bool FireCAMFrame::isBuffered() const {
+  return frame;
 }
 
 bool FireCAMFrame::isEmpty() const {
-  return !frame->image_bytes;
+  return !image;
 }
 
 /*****************************************************************************/
@@ -115,30 +105,118 @@ bool FireCAMFrame::isEmpty() const {
 /*****************************************************************************/
 
 FireCAMFrame& FireCAMFrame::operator=(const FireCAMFrame& src) {
-  if (!buffered) {
-    if ((frame->size[0] == src.frame->size[0]) &&
-        (frame->size[1] == src.frame->size[1]))
-      FireCAMUtils::assert("Failed to convert frame",
-        dc1394_convert_frames(src.frame, frame));
-    else
-      FireCAMUtils::error("Bad frame assignment",
-        "Frame sizes mismatch");
-  }
-  else
-    FireCAMUtils::error("Bad frame assignment",
-      "Attempt to overwrite capture buffer");
+  convert(src, src.color);
 }
 
 void FireCAMFrame::write(std::ostream& stream) const {
   if (!isEmpty()) {
-    stream << getWidth() << "x" << getHeight() << "x" << getDepth() << "bpp";
+    stream << width << "x" << height << "x" << color.getDepth() << "bpp";
     stream << " (";
-    if (isColor())
-      stream << "color";
-    else
+    if (color.isMonochrome())
       stream << "mono";
+    else
+      stream << "color";
     stream << ")";
   }
   else
     stream << "(empty)";
+}
+
+void FireCAMFrame::load(std::istream& stream) {
+  clear();
+
+  try {
+    stream >> width >> height;
+    color.load(stream);
+    stream >> timestamp;
+
+    image = new unsigned char[getSize()];
+    for (int i = 0; i < getSize(); ++i)
+      stream >> image[i];
+  }
+  catch (const std::exception& exception) {
+    FireCAMUtils::error("Failed to load frame", exception.what());
+  }
+}
+
+void FireCAMFrame::save(std::ostream& stream) const {
+  stream << width << height;
+  color.save(stream);
+  stream << timestamp;
+
+  for (int i = 0; i < getSize(); ++i)
+    stream << image[i];
+}
+
+FireCAMFrame& FireCAMFrame::convert(const FireCAMFrame& src, const
+    FireCAMColor& color) {
+  clear();
+
+  if (!src.frame && (color == src.color)) {
+    width = src.width;
+    height = src.height;
+    this->color = color;
+
+    image = new unsigned char[getSize()];
+    for (int i = 0; i < getSize(); ++i)
+      image[i] = src.image[i];
+
+    timestamp = src.timestamp;
+  }
+  else if (src.frame) {
+    frame = new dc1394video_frame_t();
+    frame->color_coding = FireCAMUtils::convert(color.coding,
+      FireCAMColor::codingPresets);
+
+    FireCAMUtils::assert("Failed to convert frame",
+      dc1394_convert_frames(src.frame, frame));
+
+    readParameters();
+  }
+  else
+    FireCAMUtils::error("Failed to convert frame",
+      "Color codings mismatch");
+
+  return *this;
+}
+
+void FireCAMFrame::clear() {
+  if (!buffered) {
+    if (image)
+      delete [] image;
+    if (frame)
+      delete frame;
+  }
+  else {
+    FireCAMUtils::assert("Failed to enqueue frame",
+      dc1394_capture_enqueue(frame->camera, frame));
+  }
+
+  frame = 0;
+
+  width = 0;
+  height = 0;
+  color = FireCAMColor::mono8;
+
+  image = 0;
+
+  timestamp = 0.0;
+
+  buffered = false;
+}
+
+void FireCAMFrame::readParameters() {
+  if (frame) {
+    width = frame->size[0];
+    height = frame->size[1];
+    color.coding = FireCAMUtils::convert(frame->color_coding,
+      FireCAMColor::codingPresets);
+
+    image = frame->image;
+
+    timestamp = frame->timestamp*1e-6;
+  }
+  else
+    FireCAMUtils::error("Failed to read frame parameters",
+      "Frame not in capture buffer");
 }

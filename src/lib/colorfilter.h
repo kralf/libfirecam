@@ -124,13 +124,14 @@ public:
 
   /** Filter the given input frame
     */
-  void filter(const FireCAMFrame& inputFrame, FireCAMFrame& outputFrame) const;
-protected:
-  static TileStrings tileStrings;
-  static MethodStrings methodStrings;
-  static TilePresets tilePresets;
-  static MethodPresets methodPresets;
+  void filter(const FireCAMFrame& inputFrame, FireCAMFrame& outputFrame,
+    const FireCAMColor& color) const;
 
+  static const TileStrings tileStrings;
+  static const MethodStrings methodStrings;
+  static const TilePresets tilePresets;
+  static const MethodPresets methodPresets;
+protected:
   bool enabled;
 
   Tile tile;

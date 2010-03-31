@@ -26,10 +26,10 @@
 /* Statics                                                                   */
 /*****************************************************************************/
 
-FireCAMColorFilter::TileStrings FireCAMColorFilter::tileStrings;
-FireCAMColorFilter::MethodStrings FireCAMColorFilter::methodStrings;
-FireCAMColorFilter::TilePresets FireCAMColorFilter::tilePresets;
-FireCAMColorFilter::MethodPresets FireCAMColorFilter::methodPresets;
+const FireCAMColorFilter::TileStrings FireCAMColorFilter::tileStrings;
+const FireCAMColorFilter::MethodStrings FireCAMColorFilter::methodStrings;
+const FireCAMColorFilter::TilePresets FireCAMColorFilter::tilePresets;
+const FireCAMColorFilter::MethodPresets FireCAMColorFilter::methodPresets;
 
 /*****************************************************************************/
 /* Constructors and Destructor                                               */
@@ -131,8 +131,8 @@ FireCAMColorFilter& FireCAMColorFilter::operator=(
 
 void FireCAMColorFilter::write(std::ostream& stream) const {
   if (enabled)
-    stream << "on (" << tileStrings[tile] << ", " << methodStrings[method] <<
-      ")";
+    stream << "on (" << FireCAMUtils::convert(tile, tileStrings) << ", " <<
+    FireCAMUtils::convert(method, methodStrings) << ")";
   else
     stream << "off";
 }
@@ -157,14 +157,29 @@ void FireCAMColorFilter::load(std::istream& stream) {
 
 void FireCAMColorFilter::save(std::ostream& stream) const {
   stream << "color_filter.enabled = " << enabled << std::endl;
-  stream << "color_filter.tile = " << tileStrings[tile] << std::endl;
-  stream << "color_filter.method = " << methodStrings[method] << std::endl;
+  stream << "color_filter.tile = " << FireCAMUtils::convert(tile,
+    tileStrings) << std::endl;
+  stream << "color_filter.method = " << FireCAMUtils::convert(method,
+    methodStrings) << std::endl;
 }
 
 void FireCAMColorFilter::filter(const FireCAMFrame& inputFrame, FireCAMFrame&
-  outputFrame) const {
+    outputFrame, const FireCAMColor& color) const {
   if (enabled) {
+    outputFrame.clear();
+
+    outputFrame.width = inputFrame.width;
+    outputFrame.height = inputFrame.height;
+    outputFrame.color = FireCAMColor::rgb8;
+
+    outputFrame.image = new unsigned char[outputFrame.getSize()];
+    FireCAMUtils::assert("Failed to apply color filter",
+      dc1394_bayer_decoding_8bit(inputFrame.image, outputFrame.image,
+      inputFrame.width, inputFrame.height, FireCAMUtils::convert(tile,
+      tilePresets), FireCAMUtils::convert(method, methodPresets)));
+
+    outputFrame.timestamp = inputFrame.timestamp;
   }
   else
-    outputFrame = inputFrame;
+    outputFrame.convert(inputFrame, color);
 }

@@ -27,37 +27,33 @@
 
 #include <iostream>
 
-#include <dc1394/dc1394.h>
+#include "color.h"
 
 class FireCAMVideoMode {
 friend class FireCAMCamera;
 public:
   /** Construct a FireCAM video mode object
     */
-  FireCAMVideoMode(size_t width = 0, size_t height = 0, size_t depth = 0,
-    bool color = false, bool scalable = false);
+  FireCAMVideoMode(size_t width = 0, size_t height = 0, const FireCAMColor&
+    color = FireCAMColor::mono8, bool scalable = false);
   FireCAMVideoMode(const FireCAMVideoMode& src);
 
   /** Destroy a FireCAM video mode object
     */
   virtual ~FireCAMVideoMode();
 
-  /** Access the video modes horizontal resolution
+  /** Access the video mode's horizontal resolution
     */
   void setWidth(size_t width);
   size_t getWidth() const;
-  /** Access the video modes vertical resolution
+  /** Access the video mode's vertical resolution
     */
   void setHeight(size_t height);
   size_t getHeight() const;
-  /** Access the video color resolution
+  /** Access the video mode's color
     */
-  void setDepth(size_t depth);
-  size_t getDepth() const;
-  /** Access the video modes color flag
-    */
-  void setColor(bool Color);
-  bool isColor() const;
+  void setColor(const FireCAMColor& color);
+  const FireCAMColor& getColor() const;
   /** Access the video modes scalable flag
     */
   void setScalable(bool scalable);
@@ -89,9 +85,8 @@ protected:
 
   size_t width;
   size_t height;
-  size_t depth;
+  FireCAMColor color;
 
-  bool color;
   bool scalable;
 
   /** Construct a FireCAM video mode object

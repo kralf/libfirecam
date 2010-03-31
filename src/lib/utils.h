@@ -27,6 +27,7 @@
 
 #include <sstream>
 #include <stdexcept>
+#include <vector>
 #include <map>
 
 #include <dc1394/dc1394.h>
@@ -58,6 +59,34 @@ public:
       return value;
   };
 
+  /** Templated string to vector conversions
+    */
+  template <typename T> static void convert(const std::string& string,
+      std::vector<T>& values) {
+    values.clear();
+
+    std::istringstream stream(string);
+    std::string value;
+
+    while (!stream.eof()) {
+      std::getline(stream, value, ',');
+      values.push_back(FireCAMUtils::convert<T>(value));
+    }
+  };
+
+  template <typename T> static std::string convert(const std::vector<T>&
+      values) {
+    std::ostringstream stream;
+
+    for (int i = 0; i < values.size(); ++i) {
+      if (i)
+        stream << ", ";
+      stream << values[i];
+    }
+
+    return stream.str();
+  };
+
   /** Templated string to enumeratable conversions
     */
   template <typename T> static T convert(const std::string& string,
@@ -73,13 +102,24 @@ public:
 
   /** Templated enumeratable conversions
     */
-  template <typename T, typename U> static U convert(T t,
+  template <typename T, typename U> static U convert(const T& t,
       const std::map<T, U>& presets) {
     typename std::map<T, U>::const_iterator it = presets.find(t);
     if (it == presets.end())
       error("Bad preset conversion", t);
     else
       return it->second;
+  };
+
+  template <typename T, typename U> static T convert(const U& u,
+      const std::map<T, U>& presets) {
+    for (typename std::map<T, U>::const_iterator it = presets.begin();
+        it != presets.end(); ++it) {
+      if (u == it->second)
+        return it->first;
+    }
+
+    error("Bad preset conversion", u);
   };
 };
 

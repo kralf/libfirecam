@@ -26,9 +26,9 @@
 /* Statics                                                                   */
 /*****************************************************************************/
 
-FireCAMCapture::ModeStrings FireCAMCapture::modeStrings;
-FireCAMCapture::ModePresets FireCAMCapture::modePresets;
-FireCAMCapture::SpeedPresets FireCAMCapture::speedPresets;
+const FireCAMCapture::ModeStrings FireCAMCapture::modeStrings;
+const FireCAMCapture::ModePresets FireCAMCapture::modePresets;
+const FireCAMCapture::SpeedPresets FireCAMCapture::speedPresets;
 
 /*****************************************************************************/
 /* Constructors and Destructor                                               */
@@ -128,6 +128,8 @@ void FireCAMCapture::load(std::istream& stream) {
 
 void FireCAMCapture::save(std::ostream& stream) const {
   stream << "capture.buffer_size = " << bufferSize << std::endl;
+  stream << "capture.mode = " << FireCAMUtils::convert(mode, modeStrings) <<
+    std::endl;
   stream << "capture.speed = " << speed << std::endl;
 }
 
@@ -135,7 +137,8 @@ void FireCAMCapture::writeParameters(dc1394camera_t* device) const {
   FireCAMUtils::assert("Failed to setup capture buffer",
     dc1394_capture_setup(device, bufferSize, DC1394_CAPTURE_FLAGS_DEFAULT));
   FireCAMUtils::assert("Failed to setup capture mode",
-    dc1394_video_set_operation_mode(device, modePresets[mode]));
+    dc1394_video_set_operation_mode(device, FireCAMUtils::convert(
+    mode, modePresets)));
   FireCAMUtils::assert("Failed to setup capture speed",
     dc1394_video_set_iso_speed(device, FireCAMUtils::convert(
     speed, speedPresets)));

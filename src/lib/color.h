@@ -18,98 +18,95 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef FIRECAM_CAPTURE_H
-#define FIRECAM_CAPTURE_H
+#ifndef FIRECAM_COLOR_H
+#define FIRECAM_COLOR_H
 
-/** \file capture.h
-  * \brief FireCAM capture definition
+/** \file color.h
+  * \brief FireCAM color definition
   */
 
-#include <iostream>
 #include <map>
 #include <string>
 
 #include <dc1394/dc1394.h>
 
-class FireCAMCapture {
-friend class FireCAMCamera;
+class FireCAMColor {
+friend class FireCAMVideoMode;
+friend class FireCAMFrame;
 public:
   /** Types and subclasses
     */
-  enum Mode {
-    legacy,
-    fast
+  enum Coding {
+    mono8,
+    yuv411,
+    yuv422,
+    yuv444,
+    rgb8,
+    mono16,
+    rgb16,
+    mono16s,
+    rgb16s,
+    raw8,
+    raw16
   };
 
-  class ModeStrings :
-    public std::map<Mode, std::string> {
+  class CodingStrings :
+    public std::map<Coding, std::string> {
   public:
-    /** Construct a capture mode string object
+    /** Construct a color coding string object
       */
-    ModeStrings();
+    CodingStrings();
   };
 
-  class ModePresets :
-    public std::map<Mode, dc1394operation_mode_t> {
+  class CodingPresets :
+    public std::map<Coding, dc1394color_coding_t> {
   public:
-    /** Construct a capture mode preset object
+    /** Construct a color coding preset object
       */
-    ModePresets();
+    CodingPresets();
   };
 
-  class SpeedPresets :
-    public std::map<size_t, dc1394speed_t> {
-  public:
-    /** Construct a capture speed preset object
-      */
-    SpeedPresets();
-  };
+  /** Construct a FireCAM color object
+    */
+  FireCAMColor(Coding coding = mono8);
+  FireCAMColor(const FireCAMColor& src);
 
-  /** Construct a FireCAM capture object
+  /** Destroy a FireCAM color object
     */
-  FireCAMCapture(size_t bufferSize = 16, Mode mode = legacy,
-    size_t speed = 400);
-  FireCAMCapture(const FireCAMCapture& src);
+  virtual ~FireCAMColor();
 
-  /** Destroy a FireCAM capture object
+  /** Access the color's depth
     */
-  virtual ~FireCAMCapture();
+  size_t getDepth() const;
+  /** Access the color's monochrome flag
+    */
+  bool isMonochrome() const;
 
-  /** Access the capture buffer size
+  /** FireCAM color assignments
     */
-  void setBufferSize(size_t bufferSize);
-  size_t getBufferSize() const;
-  /** Access the capture mode
-    */
-  void setMode(Mode mode);
-  Mode getMode() const;
-  /** Access the capture speed
-    */
-  void setSpeed(size_t speed);
-  size_t getSpeed() const;
+  FireCAMColor& operator=(const FireCAMColor& src);
 
-  /** FireCAM capture assignments
+  /** FireCAM color comparisons
     */
-  FireCAMCapture& operator=(const FireCAMCapture& src);
+  bool operator==(const FireCAMColor& color) const;
+  bool operator!=(const FireCAMColor& color) const;
+  bool operator<(const FireCAMColor& color) const;
 
-  /** Load capture configuration from the given stream
+  /** Write color information to the given stream
+    */
+  void write(std::ostream& stream) const;
+
+  /** Load the FireCAM color from the given stream
     */
   void load(std::istream& stream);
-  /** Save capture configuration to the given stream
+  /** Save the FireCAM color to the given stream
     */
   void save(std::ostream& stream) const;
 
-  static const ModeStrings modeStrings;
-  static const ModePresets modePresets;
-  static const SpeedPresets speedPresets;
+  static const CodingStrings codingStrings;
+  static const CodingPresets codingPresets;
 protected:
-  size_t bufferSize;
-  Mode mode;
-  size_t speed;
-
-  /** Write the capture parameters to the specified device
-    */
-  void writeParameters(dc1394camera_t* device) const;
+  Coding coding;
 };
 
 #endif

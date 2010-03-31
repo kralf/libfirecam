@@ -27,6 +27,11 @@
 /* Constructors and Destructor                                               */
 /*****************************************************************************/
 
+FireCAMCamera::FireCAMCamera() :
+  context(0),
+  device(0) {
+}
+
 FireCAMCamera::FireCAMCamera(dc1394_t* context, uint64_t guid) :
   context(context),
   device(dc1394_camera_new(context, guid)) {
@@ -100,11 +105,15 @@ const FireCAMConfiguration& FireCAMCamera::getConfiguration() const {
 }
 
 bool FireCAMCamera::isTransmitting() const {
-  dc1394switch_t transmitting;
-  FireCAMUtils::assert("Failed to query transmission status",
-    dc1394_video_get_transmission(device, &transmitting));
+  if (device) {
+    dc1394switch_t transmitting;
+    FireCAMUtils::assert("Failed to query transmission status",
+      dc1394_video_get_transmission(device, &transmitting));
 
-  return transmitting;
+    return transmitting;
+  }
+  else
+    return false;
 }
 
 double FireCAMCamera::getBandwidthUsage() const {
@@ -140,6 +149,8 @@ FireCAMCamera& FireCAMCamera::operator=(const FireCAMCamera& src) {
 
 void FireCAMCamera::connect() {
   if (!isTransmitting()) {
+    FireCAMUtils::assert("Failed to release channels",
+      dc1394_iso_release_all(device));
     writeConfiguration();
     FireCAMUtils::assert("Failed to start transmission",
       dc1394_video_set_transmission(device, DC1394_ON));
@@ -150,14 +161,18 @@ void FireCAMCamera::disconnect() {
   if (isTransmitting()) {
     FireCAMUtils::assert("Failed to stop transmission",
       dc1394_video_set_transmission(device, DC1394_OFF));
-    FireCAMUtils::assert("Failed to stop capturing",
-      dc1394_capture_stop(device));
+    dc1394_capture_stop(device);
   }
 }
 
 void FireCAMCamera::capture(FireCAMFrame& frame) {
   FireCAMFrame rawFrame(device);
-  configuration.colorFilter.filter(rawFrame, frame);
+  configuration.colorFilter.filter(rawFrame, frame, rawFrame.getColor());
+}
+
+void FireCAMCamera::capture(FireCAMFrame& frame, const FireCAMColor& color) {
+  FireCAMFrame rawFrame(device);
+  configuration.colorFilter.filter(rawFrame, frame, color);
 }
 
 void FireCAMCamera::reset() {

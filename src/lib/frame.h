@@ -27,7 +27,7 @@
 
 #include <iostream>
 
-#include <dc1394/dc1394.h>
+#include "color.h"
 
 class FireCAMFrame {
 friend class FireCAMCamera;
@@ -35,7 +35,8 @@ friend class FireCAMColorFilter;
 public:
   /** Construct a FireCAM frame object
     */
-  FireCAMFrame(size_t width = 640, size_t height = 480);
+  FireCAMFrame(size_t width = 640, size_t height = 480,
+    const FireCAMColor& color = FireCAMColor::mono8);
   FireCAMFrame(const FireCAMFrame& src);
 
   /** Destroy a FireCAM camera object
@@ -48,9 +49,9 @@ public:
   /** Access the frame's height
     */
   size_t getHeight() const;
-  /** Access the frame's color resolution
+  /** Access the frame's color
     */
-  size_t getDepth() const;
+  const FireCAMColor& getColor() const;
   /** Access the frame's image data
     */
   const unsigned char* getImage() const;
@@ -58,9 +59,9 @@ public:
   /** Access the frame's timestamp
     */
   double getTimestamp() const;
-  /** Access the frame's color flag
+  /** Access the frame's size
     */
-  bool isColor() const;
+  size_t getSize() const;
   /** Access the frame's buffered flag
     */
   bool isBuffered() const;
@@ -75,14 +76,41 @@ public:
   /** Write frame information to the given stream
     */
   void write(std::ostream& stream) const;
+
+  /** Load the FireCAM frame from the given stream
+    */
+  void load(std::istream& stream);
+  /** Save the FireCAM frame to the given stream
+    */
+  void save(std::ostream& stream) const;
+
+  /** FireCAM frame conversions
+    */
+  FireCAMFrame& convert(const FireCAMFrame& src, const FireCAMColor& color);
+
+  /** Clear the frame
+    */
+  void clear();
 protected:
   dc1394video_frame_t* frame;
+
+  size_t width;
+  size_t height;
+  FireCAMColor color;
+
+  unsigned char* image;
+
+  double timestamp;
 
   bool buffered;
 
   /** Construct a FireCAM frame object
     */
   FireCAMFrame(dc1394camera_t* device);
+
+  /** Read the frame parameters
+    */
+  void readParameters();
 };
 
 #endif

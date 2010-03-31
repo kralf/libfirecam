@@ -26,11 +26,10 @@
 /* Constructors and Destructor                                               */
 /*****************************************************************************/
 
-FireCAMVideoMode::FireCAMVideoMode(size_t width, size_t height, size_t depth,
-    bool color, bool scalable) :
+FireCAMVideoMode::FireCAMVideoMode(size_t width, size_t height,
+    const FireCAMColor& color, bool scalable) :
   width(width),
   height(height),
-  depth(depth),
   color(color),
   scalable(scalable) {
 }
@@ -56,7 +55,6 @@ FireCAMVideoMode::FireCAMVideoMode(const FireCAMVideoMode& src) :
   coding(src.coding),
   width(src.width),
   height(src.height),
-  depth(src.depth),
   color(src.color),
   scalable(src.scalable) {
 }
@@ -84,19 +82,11 @@ size_t FireCAMVideoMode::getHeight() const {
   return height;
 }
 
-void FireCAMVideoMode::setDepth(size_t depth) {
-  this->depth = depth;
+void FireCAMVideoMode::setColor(const FireCAMColor& color) {
+  this->color = color;
 }
 
-size_t FireCAMVideoMode::getDepth() const {
-  return depth;
-}
-
-void FireCAMVideoMode::setColor(bool Color) {
-  this->color = Color;
-}
-
-bool FireCAMVideoMode::isColor() const {
+const FireCAMColor& FireCAMVideoMode::getColor() const {
   return color;
 }
 
@@ -118,9 +108,8 @@ FireCAMVideoMode& FireCAMVideoMode::operator=(const FireCAMVideoMode& src) {
 
   width = src.width;
   height = src.height;
-  depth = src.depth;
-
   color = src.color;
+
   scalable = src.scalable;
 
   return *this;
@@ -128,8 +117,7 @@ FireCAMVideoMode& FireCAMVideoMode::operator=(const FireCAMVideoMode& src) {
 
 bool FireCAMVideoMode::operator==(const FireCAMVideoMode& videoMode) const {
   return ((width == videoMode.width) && (height == videoMode.height) &&
-    (depth == videoMode.depth) && (color == videoMode.color) &&
-    (scalable == videoMode.scalable));
+    (color == videoMode.color) && (scalable == videoMode.scalable));
 }
 
 bool FireCAMVideoMode::operator!=(const FireCAMVideoMode& videoMode) const {
@@ -139,18 +127,17 @@ bool FireCAMVideoMode::operator!=(const FireCAMVideoMode& videoMode) const {
 bool FireCAMVideoMode::operator<(const FireCAMVideoMode& videoMode) const {
   return ((width < videoMode.width) || (width == videoMode.width) &&
     (height < videoMode.height) || (height == videoMode.height) &&
-    (depth < videoMode.depth) || (depth == videoMode.depth) &&
     (color < videoMode.color) || (color == videoMode.color) &&
     (scalable < videoMode.scalable));
 }
 
 void FireCAMVideoMode::write(std::ostream& stream) const {
-  stream << width << "x" << height << "x" << depth << "bpp";
+  stream << width << "x" << height << "x" << color.getDepth() << "bpp";
   stream << " (";
-  if (color)
-    stream << "color";
-  else
+  if (color.isMonochrome())
     stream << "mono";
+  else
+    stream << "color";
   if (scalable)
     stream << ", scalable";
   stream << ")";
@@ -167,10 +154,8 @@ void FireCAMVideoMode::load(std::istream& stream) {
       width = FireCAMUtils::convert<size_t>(value);
     else if (option == "height")
       height = FireCAMUtils::convert<size_t>(value);
-    else if (option == "depth")
-      depth = FireCAMUtils::convert<size_t>(value);
     else if (option == "color")
-      color = FireCAMUtils::convert<bool>(value);
+      color.coding = FireCAMUtils::convert(value, FireCAMColor::codingStrings);
     else if (option == "scalable")
       scalable = FireCAMUtils::convert<bool>(value);
     else
@@ -181,8 +166,8 @@ void FireCAMVideoMode::load(std::istream& stream) {
 void FireCAMVideoMode::save(std::ostream& stream) const {
   stream << "video_mode.width = " << width << std::endl;
   stream << "video_mode.height = " << height << std::endl;
-  stream << "video_mode.depth = " << depth << std::endl;
-  stream << "video_mode.color = " << color << std::endl;
+  stream << "video_mode.color = " << FireCAMUtils::convert(color.coding,
+    FireCAMColor::codingStrings) << std::endl;
   stream << "video_mode.scalable = " << scalable << std::endl;
 }
 
@@ -193,17 +178,9 @@ void FireCAMVideoMode::readParameters(dc1394camera_t* device) {
   this->width = width;
   this->height = height;
 
-  uint32_t depth;
-  FireCAMUtils::assert("Failed to query color depth",
-    dc1394_get_color_coding_data_depth(coding, &depth));
-  this->depth = depth;
+  color = FireCAMUtils::convert(coding, FireCAMColor::codingPresets);
 
-  dc1394bool_t color;
-  FireCAMUtils::assert("Failed to query color information",
-    dc1394_is_color(coding, &color));
-  this->color = color;
-
-  this->scalable = dc1394_is_video_mode_scalable(mode);
+  scalable = dc1394_is_video_mode_scalable(mode);
 }
 
 void FireCAMVideoMode::writeParameters(dc1394camera_t* device) const {

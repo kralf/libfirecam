@@ -120,10 +120,10 @@ public:
   /** Save feature configuration to the given stream
     */
   void save(std::ostream& stream) const;
-protected:
-  static ModeStrings modeStrings;
-  static ModePresets modePresets;
 
+  static const ModeStrings modeStrings;
+  static const ModePresets modePresets;
+protected:
   dc1394feature_t feature;
 
   std::string name;

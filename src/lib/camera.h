@@ -36,6 +36,7 @@ friend class FireCAM;
 public:
   /** Construct a FireCAM camera object
     */
+  FireCAMCamera();
   FireCAMCamera(const FireCAMCamera& src);
 
   /** Destroy a FireCAM camera object
@@ -87,6 +88,7 @@ public:
   /** Capture a camera frame
     */
   void capture(FireCAMFrame& frame);
+  void capture(FireCAMFrame& frame, const FireCAMColor& color);
 
   /** Reset camera to factory defaults
     */
