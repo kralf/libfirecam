@@ -31,7 +31,8 @@ void firecam_signaled(int signal) {
 
 int main(int argc, char **argv) {
   if (argc < 2) {
-    std::cerr << "Usage: " << argv[0] << " GUID [FILENAME]" << std::endl;
+    std::cerr << "Usage: " << argv[0] << " GUID [FILENAME] [DIRNAME]" <<
+      std::endl;
     return -1;
   }
 
@@ -41,11 +42,15 @@ int main(int argc, char **argv) {
 
   FireCAMCamera& camera = FireCAM::getInstance().getCamera(guid);
 
-  if (argc == 3) {
+  if (argc > 2) {
     std::cout << "Parsing configuration file " << argv[2] << std::endl;
     FireCAMConfiguration configuration(argv[2]);
     camera.setConfiguration(configuration);
   }
+
+  std::string directory;
+  if (argc > 3)
+    directory = argv[3];
 
   std::cout << "Connecting camera" << std::endl;
   camera.connect();
@@ -55,9 +60,8 @@ int main(int argc, char **argv) {
     FireCAMFrame frame;
     camera.capture(frame);
 
-    std::cout << "Captured frame ";
-    frame.write(std::cout);
-    std::cout << std::endl;
+    std::string filename = frame.dump(directory);
+    std::cout << "Dumped frame to " << filename << std::endl;
   }
 
   std::cout << "Disconnecting camera" << std::endl;

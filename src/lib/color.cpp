@@ -117,15 +117,3 @@ bool FireCAMColor::operator<(const FireCAMColor& color) const {
 void FireCAMColor::write(std::ostream& stream) const {
   stream << FireCAMUtils::convert(coding, codingStrings);
 }
-
-void FireCAMColor::load(std::istream& stream) {
-  int coding;
-  stream >> coding;
-
-  this->coding = FireCAMUtils::convert((dc1394color_coding_t)coding,
-    codingPresets);
-}
-
-void FireCAMColor::save(std::ostream& stream) const {
-  stream << FireCAMUtils::convert(coding, codingPresets);
-}

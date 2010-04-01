@@ -18,6 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <fstream>
+
 #include "frame.h"
 
 #include "utils.h"
@@ -126,26 +128,64 @@ void FireCAMFrame::load(std::istream& stream) {
   clear();
 
   try {
-    stream >> width >> height;
-    color.load(stream);
-    stream >> timestamp;
+    stream.read((char*)&width, sizeof(width));
+    stream.read((char*)&height, sizeof(height));
+    stream.read((char*)&color.coding, sizeof(color.coding));
+    stream.read((char*)&timestamp, sizeof(timestamp));
 
     image = new unsigned char[getSize()];
-    for (int i = 0; i < getSize(); ++i)
-      stream >> image[i];
+    stream.read((char*)image, getSize());
   }
   catch (const std::exception& exception) {
     FireCAMUtils::error("Failed to load frame", exception.what());
   }
 }
 
-void FireCAMFrame::save(std::ostream& stream) const {
-  stream << width << height;
-  color.save(stream);
-  stream << timestamp;
+void FireCAMFrame::load(const std::string& filename) {
+  std::ifstream file(filename.c_str(), std::fstream::binary);
+  load(file);
+  file.close();
+}
 
-  for (int i = 0; i < getSize(); ++i)
-    stream << image[i];
+void FireCAMFrame::save(std::ostream& stream) const {
+  try {
+    stream.write((const char*)&width, sizeof(width));
+    stream.write((const char*)&height, sizeof(height));
+    stream.write((const char*)&color.coding, sizeof(color.coding));
+    stream.write((const char*)&timestamp, sizeof(timestamp));
+
+    stream.write((const char*)image, getSize());
+  }
+  catch (const std::exception& exception) {
+    FireCAMUtils::error("Failed to save frame", exception.what());
+  }
+}
+
+void FireCAMFrame::save(const std::string& filename) const {
+  std::ofstream file(filename.c_str(), std::fstream::binary);
+  save(file);
+  file.close();
+}
+
+std::string FireCAMFrame::dump(const std::string& directory) const {
+  char date[1024];
+  char usecs[256];
+
+  time_t local = timestamp;
+  struct tm* time = localtime(&local);
+
+  strftime(date, sizeof(date), "%Y-%m-%d-%H%M%S", time);
+  sprintf(usecs, "%06d", (int)((timestamp-(int)timestamp)*1e6));
+
+  std::ostringstream filename;
+  filename << directory;
+  if (!directory.empty() && (directory[directory.size()-1] != '/'))
+    filename << '/';
+  filename << date << '-' << usecs << ".raw";
+
+  save(filename.str());
+
+  return filename.str();
 }
 
 FireCAMFrame& FireCAMFrame::convert(const FireCAMFrame& src, const

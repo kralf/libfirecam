@@ -96,13 +96,6 @@ public:
     */
   void write(std::ostream& stream) const;
 
-  /** Load the FireCAM color from the given stream
-    */
-  void load(std::istream& stream);
-  /** Save the FireCAM color to the given stream
-    */
-  void save(std::ostream& stream) const;
-
   static const CodingStrings codingStrings;
   static const CodingPresets codingPresets;
 protected:

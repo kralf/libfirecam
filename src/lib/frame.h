@@ -77,12 +77,18 @@ public:
     */
   void write(std::ostream& stream) const;
 
-  /** Load the FireCAM frame from the given stream
+  /** Load the FireCAM frame from the given stream or file
     */
   void load(std::istream& stream);
-  /** Save the FireCAM frame to the given stream
+  void load(const std::string& filename);
+  /** Save the FireCAM frame to the given stream or file
     */
   void save(std::ostream& stream) const;
+  void save(const std::string& filename) const;
+
+  /** Dump the FireCAM frame into the given directory
+    */
+  std::string dump(const std::string& directory = "") const;
 
   /** FireCAM frame conversions
     */
