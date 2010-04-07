@@ -135,6 +135,9 @@ FireCAMCamera& FireCAMCamera::operator=(const FireCAMCamera& src) {
     dc1394_camera_free(device);
   }
 
+  if (!src.device)
+    FireCAMUtils::error("Failed to assign camera", "No such device");
+
   context = src.context;
   device = dc1394_camera_new(src.context, src.device->guid);
 

@@ -78,6 +78,9 @@ public:
   /** Access the color's depth
     */
   size_t getDepth() const;
+  /** Access the color's size in byte
+    */
+  size_t getSize() const;
   /** Access the color's monochrome flag
     */
   bool isMonochrome() const;

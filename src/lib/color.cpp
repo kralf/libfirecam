@@ -85,6 +85,16 @@ size_t FireCAMColor::getDepth() const {
   return depth;
 }
 
+size_t FireCAMColor::getSize() const {
+  size_t depth = getDepth();
+
+  if (!(depth % 8))
+    return depth/8;
+  else
+    FireCAMUtils::error("Failed to query color size",
+    "Color byte size is fractional");
+}
+
 bool FireCAMColor::isMonochrome() const {
   dc1394bool_t color;
   FireCAMUtils::assert("Failed to query color information",

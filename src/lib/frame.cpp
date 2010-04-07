@@ -18,6 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <math.h>
 #include <fstream>
 
 #include "frame.h"
@@ -91,7 +92,7 @@ double FireCAMFrame::getTimestamp() const {
 }
 
 size_t FireCAMFrame::getSize() const {
-  return width*height*color.getDepth()/8;
+  return width*height*color.getSize();
 }
 
 bool FireCAMFrame::isBuffered() const {
@@ -186,6 +187,47 @@ std::string FireCAMFrame::dump(const std::string& directory) const {
   save(filename.str());
 
   return filename.str();
+}
+
+FireCAMFrame& FireCAMFrame::resize(size_t width, size_t height,
+    ResizeMethod method) {
+  if (isEmpty())
+    FireCAMUtils::error("Failed to resize frame", "Frame is empty");
+
+  FireCAMColor color = this->color;
+  double timestamp = this->timestamp;
+  unsigned char* image = 0;
+
+  size_t colorSize = color.getSize();
+  if (width*height)
+    image = new unsigned char[width*height*colorSize];
+
+  if (method == nearest) {
+    double h = (double)this->width/width;
+    double v = (double)this->height/height;
+
+    for (int i = 0; i < width; ++i) {
+      int m = round(i*h);
+      for (int j = 0; j < height; ++j) {
+        int n = round(j*v);
+        for (int k = 0; k < colorSize; ++k)
+          image[(j*width+i)*colorSize+k] =
+          this->image[(n*this->width+m)*colorSize+k];
+      }
+    }
+  }
+
+  clear();
+
+  this->width = width;
+  this->height = height;
+  this->color = color;
+
+  this->image = image;
+
+  this->timestamp = timestamp;
+
+  return *this;
 }
 
 FireCAMFrame& FireCAMFrame::convert(const FireCAMFrame& src, const

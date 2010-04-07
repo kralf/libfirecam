@@ -33,6 +33,12 @@ class FireCAMFrame {
 friend class FireCAMCamera;
 friend class FireCAMColorFilter;
 public:
+  /** Types and subclasses
+    */
+  enum ResizeMethod {
+    nearest
+  };
+
   /** Construct a FireCAM frame object
     */
   FireCAMFrame(size_t width = 640, size_t height = 480,
@@ -90,7 +96,12 @@ public:
     */
   std::string dump(const std::string& directory = "") const;
 
-  /** FireCAM frame conversions
+  /** Resize the frame
+    */
+  FireCAMFrame& resize(size_t width, size_t height, ResizeMethod
+    method = nearest);
+
+  /** Perform color conversion of a frame
     */
   FireCAMFrame& convert(const FireCAMFrame& src, const FireCAMColor& color);
 
