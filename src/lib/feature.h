@@ -99,6 +99,9 @@ public:
   /** Access the supported modes of the feature
     */
   const std::list<Mode>& getModes() const;
+  /** Access the boundaries of the feature
+    */
+  const std::vector<size_t>& getBoundaries() const;
 
   /** FireCAM feature assignments
     */
@@ -134,6 +137,7 @@ protected:
   bool readable;
   bool switchable;
   std::list<Mode> modes;
+  std::vector<size_t> boundaries;
 
   /** Construct a FireCAM feature object
     */

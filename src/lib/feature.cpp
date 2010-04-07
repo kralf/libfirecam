@@ -102,7 +102,8 @@ FireCAMFeature::FireCAMFeature(const FireCAMFeature& src) :
   mode(src.mode),
   readable(src.readable),
   switchable(src.switchable),
-  modes(src.modes) {
+  modes(src.modes),
+  boundaries(src.boundaries) {
 }
 
 FireCAMFeature::~FireCAMFeature() {
@@ -168,6 +169,10 @@ const std::list<FireCAMFeature::Mode>& FireCAMFeature::getModes() const {
   return modes;
 }
 
+const std::vector<size_t>& FireCAMFeature::getBoundaries() const {
+  return boundaries;
+}
+
 /*****************************************************************************/
 /* Methods                                                                   */
 /*****************************************************************************/
@@ -183,6 +188,7 @@ FireCAMFeature& FireCAMFeature::operator=(const FireCAMFeature& src) {
   readable = src.readable;
   switchable = src.switchable;
   modes = src.modes;
+  boundaries = src.boundaries;
 
   return *this;
 }
@@ -222,9 +228,16 @@ void FireCAMFeature::write(std::ostream& stream) const {
         stream << "/";
       stream << FireCAMUtils::convert(*it, modeStrings);
     }
+  }
+  if (!boundaries.empty()) {
+    if (readable || switchable || !modes.empty())
+      stream << ", ";
+    else
+      stream << " (";
+    stream << boundaries[0] << "-" << boundaries[1];
     stream << ")";
   }
-  else if (readable || switchable)
+  else if (readable || switchable || !modes.empty())
     stream << ")";
 }
 
@@ -331,10 +344,35 @@ void FireCAMFeature::readParameters(dc1394camera_t* device) {
     else
       this->modes.push_back(manual);
   }
+
+  boundaries.clear();
+  uint32_t min, max;
+  if (dc1394_feature_get_boundaries(device, feature, &min, &max) ==
+      DC1394_SUCCESS) {
+    boundaries.push_back(min);
+    boundaries.push_back(max);
+  }
 }
 
 void FireCAMFeature::writeParameters(dc1394camera_t* device, const
     FireCAMFeature& feature) const {
+  FireCAMUtils::assert("Failed to set feature power state",
+    dc1394_feature_set_power(device, this->feature,
+    feature.enabled ? DC1394_ON: DC1394_OFF));
+
+  if (modes.size() > 1)
+    FireCAMUtils::assert("Failed to set feature mode",
+      dc1394_feature_set_mode(device, this->feature,
+      FireCAMUtils::convert(feature.mode, modePresets)));
+
+  if (!boundaries.empty()) {
+    for (int i = 0; i < feature.values.size(); ++i) {
+      if ((feature[i] < boundaries[0]) || (feature[i] > boundaries[1]))
+        FireCAMUtils::error("Failed to set feature value(s)",
+        "Value exceeds bounds");
+    }
+  }
+
   if (this->feature == DC1394_FEATURE_TEMPERATURE)
     FireCAMUtils::assert("Failed to set temperature values",
       dc1394_feature_temperature_set_value(device, feature[0]));
@@ -348,13 +386,4 @@ void FireCAMFeature::writeParameters(dc1394camera_t* device, const
   else
     FireCAMUtils::assert("Failed to set feature value",
       dc1394_feature_set_value(device, this->feature, feature[0]));
-
-  FireCAMUtils::assert("Failed to set feature power state",
-    dc1394_feature_set_power(device, this->feature,
-    feature.enabled ? DC1394_ON: DC1394_OFF));
-
-  if (modes.size() > 1)
-    FireCAMUtils::assert("Failed to set feature mode",
-      dc1394_feature_set_mode(device, this->feature,
-      FireCAMUtils::convert(feature.mode, modePresets)));
 }

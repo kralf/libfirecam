@@ -62,6 +62,7 @@ public:
     videoMode) const;
   /** Access the camera's features
     */
+  const FireCAMFeature& getFeature() const;
   const std::set<FireCAMFeature>& getFeatures() const;
 
   /** Access the camera's configuration
@@ -72,6 +73,12 @@ public:
   /** Access the camera's transmission flag
     */
   bool isTransmitting() const;
+  /** Access if the camera supports the given video mode
+    */
+  bool hasVideoMode(const FireCAMVideoMode& videoMode) const;
+  /** Access if the camera supports the given feature
+    */
+  bool hasFeature(const FireCAMFeature& feature) const;
   /** Access the camera's bandwidth usage
     */
   double getBandwidthUsage() const;

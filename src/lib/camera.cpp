@@ -93,7 +93,12 @@ const std::set<FireCAMFramerate>& FireCAMCamera::getFramerates(const
 
 void FireCAMCamera::setConfiguration(const FireCAMConfiguration&
     configuration) {
-  this->configuration = configuration;
+  if (isTransmitting()) {
+    this->configuration = configuration;
+    writeConfiguration();
+  }
+  else
+    this->configuration = configuration;
 }
 
 const std::set<FireCAMFeature>& FireCAMCamera::getFeatures() const {
@@ -114,6 +119,15 @@ bool FireCAMCamera::isTransmitting() const {
   }
   else
     return false;
+}
+
+bool FireCAMCamera::hasVideoMode(const FireCAMVideoMode& videoMode) const {
+  std::set<FireCAMVideoMode>::const_iterator it = videoModes.find(videoMode);
+}
+
+bool FireCAMCamera::hasFeature(const FireCAMFeature& feature) const {
+  std::set<FireCAMFeature>::const_iterator it = features.find(feature);
+  return (it != features.end());
 }
 
 double FireCAMCamera::getBandwidthUsage() const {
@@ -292,5 +306,6 @@ void FireCAMCamera::writeConfiguration() {
       itFeature->writeParameters(device, itConfigurationFeature->second);
   }
 
-  configuration.capture.writeParameters(device);
+  if (!isTransmitting())
+    configuration.capture.writeParameters(device);
 }
