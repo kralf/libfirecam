@@ -291,6 +291,8 @@ void FireCAMCamera::writeConfiguration() {
   else
     itFramerate->writeParameters(device);
 
+  readFeatures();
+
   for (std::map<std::string, FireCAMFeature>::const_iterator
       itConfigurationFeature = configuration.features.begin();
       itConfigurationFeature != configuration.features.end();
