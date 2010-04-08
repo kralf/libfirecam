@@ -28,6 +28,9 @@
 
 int quit = 0;
 
+int remove_raw = 0;
+int rename_raw = 0;
+
 void firecam_signaled(int signal) {
   quit = 1;
 }
@@ -92,24 +95,58 @@ void firecam_write_png(const FireCAMFrame& frame, const char* filename) {
 
 int main(int argc, char **argv) {
   if (argc < 2) {
-    std::cerr << "Usage: " << argv[0] << " FILENAMES" <<
+    std::cerr << "Usage: " << argv[0] << " [--remove|rename] FILENAMES" <<
       std::endl;
     return -1;
   }
 
-  for (int i = 1; !quit && (i < argc); ++i) {
+  for (int i = 1; i < argc-1; ++i) {
+    if (!strcmp(argv[i], "--remove"))
+      remove_raw = 1;
+    else if (!strcmp(argv[i], "--rename"))
+      rename_raw = 1;
+  }
+
+  for (int i = 1; !quit && (i < argc); ++i)
+      if (strncmp(argv[i], "--", 2)) {
     FireCAMFrame frame;
     frame.load(argv[i]);
 
     std::cout << "Converting " << argv[i] << std::endl;
     std::string filename(argv[i]);
-    int i = filename.find(".raw");
-    if (i >= 0)
-      filename.replace(i, 4,".png");
-    else
-      filename += ".png";
+    if (rename_raw) {
+      char date[1024];
+      char usecs[256];
 
-    firecam_write_png(frame, filename.c_str());
+      double timestamp = frame.getTimestamp();
+      time_t local = timestamp;
+      struct tm* time = localtime(&local);
+
+      strftime(date, sizeof(date), "%Y-%m-%d-%H%M%S", time);
+      sprintf(usecs, "%06d", (int)((timestamp-(int)timestamp)*1e6));
+
+      filename = date;
+      filename += '-';
+      filename += usecs;
+      filename += ".png";
+    }
+    else {
+      int i = filename.find(".raw");
+      if (i >= 0)
+        filename.replace(i, 4,".png");
+      else
+        filename += ".png";
+    }
+
+    try {
+      firecam_write_png(frame, filename.c_str());
+      if (remove_raw)
+        remove(argv[i]);
+    }
+    catch (std::runtime_error error) {
+      std::cout << "Error: " << error.what() << std::endl;
+      return -1;
+    }
   }
 
   return 0;
