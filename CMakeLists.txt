@@ -21,7 +21,21 @@ remake_doc(
   html
 )
 
-remake_pack_deb()
-remake_pack_deb(COMPONENT utils libfirecam)
-remake_pack_deb(COMPONENT dev)
-remake_pack_deb(ARCH all COMPONENT doc)
+remake_pack_deb(
+  libpng12-0 libdc1394-22
+)
+remake_pack_deb(
+  COMPONENT utils
+  DESCRIPTION "utilities"
+  libfirecam
+)
+remake_pack_deb(
+  COMPONENT dev
+  DESCRIPTION "development headers"
+  libfirecam libpng12-dev libdc1394-22-dev
+)
+remake_pack_deb(
+  ARCH all
+  COMPONENT doc
+  DESCRIPTION "documentation"
+)
