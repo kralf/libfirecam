@@ -262,6 +262,19 @@ FireCAMFrame& FireCAMFrame::convert(const FireCAMFrame& src, const
   return *this;
 }
 
+FireCAMFrame& FireCAMFrame::convertToRGB8(const FireCAMFrame& src) {
+  clear();
+  image = new unsigned char[src.width * src.height * 3];
+  FireCAMUtils::assert("Failed to convert frame",
+    dc1394_convert_to_RGB8(src.image, image, src.width, src.height, 0,
+      FireCAMUtils::convert(src.color.coding, FireCAMColor::codingPresets), 0));
+  width = src.width;
+  height = src.height;
+  color = FireCAMColor::rgb8;
+  timestamp = src.timestamp;
+  return *this;
+}
+
 void FireCAMFrame::clear() {
   if (!buffered) {
     if (image)

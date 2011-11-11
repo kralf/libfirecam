@@ -105,6 +105,10 @@ public:
     */
   FireCAMFrame& convert(const FireCAMFrame& src, const FireCAMColor& color);
 
+  /** Perform color conversion of a frame to RGB8
+    */
+  FireCAMFrame& convertToRGB8(const FireCAMFrame& src);
+
   /** Clear the frame
     */
   void clear();
