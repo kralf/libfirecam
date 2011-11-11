@@ -316,6 +316,16 @@ void FireCAMFeature::readParameters(dc1394camera_t* device) {
       values.push_back(value);
     }
   }
+  else {
+    if (feature == DC1394_FEATURE_TEMPERATURE)
+      values.resize(1, 0);
+    else if (feature == DC1394_FEATURE_WHITE_BALANCE)
+      values.resize(2, 0);
+    else if (feature == DC1394_FEATURE_WHITE_SHADING)
+      values.resize(3, 0);
+    else
+      values.resize(1, 0);
+  }
 
   dc1394switch_t enabled;
   FireCAMUtils::assert("Failed to query feature power state",
@@ -351,6 +361,9 @@ void FireCAMFeature::readParameters(dc1394camera_t* device) {
       DC1394_SUCCESS) {
     boundaries.push_back(min);
     boundaries.push_back(max);
+
+    for (int i = 0; i < values.size(); ++i)
+      values[i] = std::max(boundaries[0], std::min(boundaries[1], values[i]));
   }
 }
 
