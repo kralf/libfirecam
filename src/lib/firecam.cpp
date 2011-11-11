@@ -34,6 +34,7 @@ FireCAM::FireCAM() :
 }
 
 FireCAM::~FireCAM() {
+  cameras.clear();
   dc1394_free(context);
 }
 

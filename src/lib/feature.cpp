@@ -51,11 +51,11 @@ FireCAMFeature::ModePresets::ModePresets() {
 FireCAMFeature::FireCAMFeature(const char* name, size_t value, bool enabled,
     Mode mode) :
   name(name ? name : ""),
+  values(value, 1),
   enabled(enabled),
   mode(mode),
   readable(true),
   switchable(true) {
-  values.push_back(value);
 }
 
 FireCAMFeature::FireCAMFeature(const char* name, const std::vector<size_t>&
