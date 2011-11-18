@@ -32,7 +32,7 @@ FireCAMCamera::FireCAMCamera() :
   device(0) {
 }
 
-FireCAMCamera::FireCAMCamera(dc1394_t* context, uint64_t guid) :
+FireCAMCamera::FireCAMCamera(const FireCAMContext& context, uint64_t guid) :
   context(context),
   device(dc1394_camera_new(context, guid)) {
   readVideoModes();

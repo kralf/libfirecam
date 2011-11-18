@@ -18,50 +18,38 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef FIRECAM_H
-#define FIRECAM_H
+#ifndef FIRECAM_CONTEXT_H
+#define FIRECAM_CONTEXT_H
 
-/** \file firecam.h
-  * \brief FireCAM device driver class
+/** \file context.h
+  * \brief FireCAM context class
   */
 
-#include <map>
+#include <dc1394/dc1394.h>
 
-#include "context.h"
-#include "camera.h"
-
-class FireCAM {
+class FireCAMContext {
 public:
-  /** Access the device driver's static instance
+  /** Construct a FireCAM context object
     */
-  static FireCAM& getInstance();
+  FireCAMContext();
 
-  /** Access the FireCAM device driver context
+  /** Destroy a FireCAM context object
     */
-  const FireCAMContext& getContext() const;
+  virtual ~FireCAMContext();
 
-  /** Access all available cameras
+  /** FireCAM context conversion
     */
-  const std::map<uint64_t, FireCAMCamera>& getCameras() const;
-  /** Access the camera with the specified GUID
-    */
-  FireCAMCamera& getCamera(uint64_t guid);
-
-  /** Rescan the bus for available cameras
-    */
-  size_t rescan();
+  operator dc1394_t*() const;
 protected:
-  std::map<uint64_t, FireCAMCamera> cameras;
-
-  FireCAMContext context;
-
-  /** Construct a FireCAM device driver object
+  dc1394_t* context;
+private:
+  /** Construct a FireCAM camera object
     */
-  FireCAM();
+  FireCAMContext(const FireCAMContext& src);
 
-  /** Destroy a FireCAM device driver object
+  /** FireCAM context assignment
     */
-  virtual ~FireCAM();
+  FireCAMContext& operator=(const FireCAMContext& src);
 };
 
 #endif

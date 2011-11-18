@@ -28,14 +28,12 @@
 /* Constructors and Destructor                                               */
 /*****************************************************************************/
 
-FireCAM::FireCAM() :
-  context(dc1394_new()) {
+FireCAM::FireCAM() {
   rescan();
 }
 
 FireCAM::~FireCAM() {
   cameras.clear();
-  dc1394_free(context);
 }
 
 /*****************************************************************************/
@@ -47,7 +45,7 @@ FireCAM& FireCAM::getInstance() {
   return fireCAM;
 }
 
-dc1394_t* FireCAM::getContext() const {
+const FireCAMContext& FireCAM::getContext() const {
   return context;
 }
 

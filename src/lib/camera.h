@@ -27,6 +27,7 @@
 
 #include <set>
 
+#include "context.h"
 #include "configuration.h"
 
 #include "frame.h"
@@ -37,6 +38,7 @@ public:
   /** Construct a FireCAM camera object
     */
   FireCAMCamera();
+  FireCAMCamera(const FireCAMContext& context, uint64_t guid);
   FireCAMCamera(const FireCAMCamera& src);
 
   /** Destroy a FireCAM camera object
@@ -113,10 +115,6 @@ protected:
   std::set<FireCAMFeature> features;
 
   FireCAMConfiguration configuration;
-
-  /** Construct a FireCAM camera object
-    */
-  FireCAMCamera(dc1394_t* context, uint64_t guid);
 
   /** Read the supported video modes from the device
     */
