@@ -200,6 +200,7 @@ void FireCAMCamera::capture(FireCAMFrame& frame, const FireCAMColor& color) {
 
 void FireCAMCamera::reset() {
   FireCAMUtils::assert("Failed to reset camera",  dc1394_camera_reset(device));
+  FireCAMUtils::assert("Failed to reset camera bus", dc1394_reset_bus(device));
   readConfiguration();
 }
 
