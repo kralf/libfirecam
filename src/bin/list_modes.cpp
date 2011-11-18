@@ -32,8 +32,9 @@ int main(int argc, char **argv) {
   uint64_t guid;
   stream >> std::hex >> guid;
 
-  const std::set<FireCAMVideoMode>& videoModes =
-    FireCAM::getInstance().getCamera(guid).getVideoModes();
+  FireCAMContext context;
+  FireCAMCamera camera(context, guid);
+  const std::set<FireCAMVideoMode>& videoModes = camera.getVideoModes();
 
   for (std::set<FireCAMVideoMode>::const_iterator it = videoModes.begin();
       it != videoModes.end(); ++it) {

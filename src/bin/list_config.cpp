@@ -32,10 +32,10 @@ int main(int argc, char **argv) {
   uint64_t guid;
   stream >> std::hex >> guid;
 
-  const FireCAMConfiguration& configuration =
-    FireCAM::getInstance().getCamera(guid).getConfiguration();
+  FireCAMContext context;
+  FireCAMCamera camera(context, guid);
 
-  configuration.save(std::cout);
+  camera.getConfiguration().save(std::cout);
 
   return 0;
 }

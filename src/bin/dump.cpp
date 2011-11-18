@@ -40,7 +40,8 @@ int main(int argc, char **argv) {
   uint64_t guid;
   stream >> std::hex >> guid;
 
-  FireCAMCamera& camera = FireCAM::getInstance().getCamera(guid);
+  FireCAMContext context;
+  FireCAMCamera camera(context, guid);
 
   if (argc > 2) {
     std::cout << "Parsing configuration file " << argv[2] << std::endl;

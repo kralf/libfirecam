@@ -35,6 +35,12 @@ FireCAMCamera::FireCAMCamera() :
 FireCAMCamera::FireCAMCamera(const FireCAMContext& context, uint64_t guid) :
   context(context),
   device(dc1394_camera_new(context, guid)) {
+  if (!device) {
+    std::ostringstream stream;
+    stream << std::hex << guid;
+    FireCAMUtils::error("Bad camera GUID", stream.str());
+  }
+  
   readVideoModes();
   readFramerates();
   readFeatures();

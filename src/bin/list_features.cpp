@@ -32,8 +32,9 @@ int main(int argc, char **argv) {
   uint64_t guid;
   stream >> std::hex >> guid;
 
-  const std::set<FireCAMFeature>& features =
-    FireCAM::getInstance().getCamera(guid).getFeatures();
+  FireCAMContext context;
+  FireCAMCamera camera(context, guid);
+  const std::set<FireCAMFeature>& features = camera.getFeatures();
 
   for (std::set<FireCAMFeature>::const_iterator it = features.begin();
       it != features.end(); ++it) {
