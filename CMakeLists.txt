@@ -38,3 +38,11 @@ remake_pack_deb(
   COMPONENT doc
   DESCRIPTION "documentation"
 )
+
+remake_distribute_deb(
+  DISTRIBUTION lucid
+  SECTION libs
+  UPLOAD ppa:kralf/asl
+  DEPENDS remake libpng12-dev libdc1394-22-dev
+  PASS CMAKE_BUILD_TYPE LIBFIRECAM_SUBVERSION_REVISION
+)
