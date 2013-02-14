@@ -1,3 +1,9 @@
+libfirecam (0.1-24) lucid; urgency=low
+
+  * Added doxygen build dependency
+
+ -- Ralf Kaestner <ralf.kaestner@gmail.com>  Thu, 14 Feb 2013 13:29:00 +0100
+
 libfirecam (0.1-23) lucid; urgency=low
 
   * Release distribution
