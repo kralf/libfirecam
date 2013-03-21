@@ -1,3 +1,9 @@
+libfirecam (0.1-25) lucid; urgency=low
+
+  * Added precise distribution
+
+ -- Ralf Kaestner <ralf.kaestner@gmail.com>  Thu, 21 Mar 2013 16:39:00 +0100
+
 libfirecam (0.1-24) lucid; urgency=low
 
   * Added doxygen build dependency
