@@ -1,3 +1,9 @@
+libfirecam (0.1-26) lucid; urgency=low
+
+  * Fixed development packages dependencies
+
+ -- Ralf Kaestner <ralf.kaestner@gmail.com>  Sun, 24 Mar 2013 18:18:00 +0100
+
 libfirecam (0.1-25) lucid; urgency=low
 
   * Added precise distribution

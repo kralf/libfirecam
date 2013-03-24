@@ -21,17 +21,17 @@ remake_doc(
 )
 
 remake_pack_deb(
-  libpng12-0 libdc1394-22
+  DEPENDS libpng12-0 libdc1394-22
 )
 remake_pack_deb(
   COMPONENT utils
   DESCRIPTION "utilities"
-  libfirecam
+  DEPENDS libfirecam
 )
 remake_pack_deb(
   COMPONENT dev
   DESCRIPTION "development headers"
-  libfirecam libpng12-dev libdc1394-22-dev
+  DEPENDS libfirecam libpng12-dev libdc1394-22-dev
 )
 remake_pack_deb(
   ARCH all
