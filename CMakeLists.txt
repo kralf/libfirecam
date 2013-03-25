@@ -43,13 +43,13 @@ remake_distribute_deb(
   DISTRIBUTION lucid
   SECTION libs
   UPLOAD ppa:kralf/asl
-  DEPENDS remake libpng12-dev libdc1394-22-dev doxygen
+  DEPENDS remake libpng12-dev libdc1394-22-dev pkg-config doxygen
   PASS CMAKE_BUILD_TYPE LIBFIRECAM_SUBVERSION_REVISION
 )
 remake_distribute_deb(
   DISTRIBUTION precise
   SECTION libs
   UPLOAD ppa:kralf/asl
-  DEPENDS remake libpng12-dev libdc1394-22-dev doxygen
+  DEPENDS remake libpng12-dev libdc1394-22-dev pkg-config doxygen
   PASS CMAKE_BUILD_TYPE LIBFIRECAM_SUBVERSION_REVISION
 )

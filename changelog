@@ -1,3 +1,9 @@
+libfirecam (0.1-27) lucid; urgency=low
+
+  * Added pkg-config to build dependencies
+
+ -- Ralf Kaestner <ralf.kaestner@gmail.com>  Mon, 25 Mar 2013 08:36:00 +0100
+
 libfirecam (0.1-26) lucid; urgency=low
 
   * Fixed development packages dependencies
