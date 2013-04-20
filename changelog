@@ -1,3 +1,9 @@
+libfirecam (0.1-28) lucid; urgency=low
+
+  * Rebased project to github
+
+ -- Ralf Kaestner <ralf.kaestner@gmail.com>  Sat, 20 Apr 2013 11:47:00 +0100
+
 libfirecam (0.1-27) lucid; urgency=low
 
   * Added pkg-config to build dependencies

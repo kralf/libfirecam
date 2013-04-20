@@ -10,7 +10,7 @@ remake_project(
   AUTHOR "Ralf Kaestner"
   AUTHOR "Luciano Spinello"
   CONTACT "ralf.kaestner@gmail.com"
-  HOME "http://aslforge.ethz.ch/projects/libfirecam"
+  HOME "http://github.com/kralf/libfirecam"
   LICENSE "GNU Lesser General Public License (LGPL)"
   PREFIX firecam-
   INSTALL /usr
@@ -44,12 +44,12 @@ remake_distribute_deb(
   SECTION libs
   UPLOAD ppa:kralf/asl
   DEPENDS remake libpng12-dev libdc1394-22-dev pkg-config doxygen
-  PASS CMAKE_BUILD_TYPE LIBFIRECAM_SUBVERSION_REVISION
+  PASS CMAKE_BUILD_TYPE LIBFIRECAM_GIT_REVISION
 )
 remake_distribute_deb(
   DISTRIBUTION precise
   SECTION libs
   UPLOAD ppa:kralf/asl
   DEPENDS remake libpng12-dev libdc1394-22-dev pkg-config doxygen
-  PASS CMAKE_BUILD_TYPE LIBFIRECAM_SUBVERSION_REVISION
+  PASS CMAKE_BUILD_TYPE LIBFIRECAM_GIT_REVISION
 )
