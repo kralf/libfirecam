@@ -53,3 +53,10 @@ remake_distribute_deb(
   DEPENDS remake libpng12-dev libdc1394-22-dev pkg-config doxygen
   PASS CMAKE_BUILD_TYPE LIBFIRECAM_GIT_REVISION
 )
+remake_distribute_deb(
+  DISTRIBUTION trusty
+  SECTION libs
+  UPLOAD ppa:kralf/asl
+  DEPENDS remake libpng12-dev libdc1394-22-dev pkg-config doxygen
+  PASS CMAKE_BUILD_TYPE LIBFIRECAM_GIT_REVISION
+)
